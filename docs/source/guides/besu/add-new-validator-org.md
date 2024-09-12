@@ -27,7 +27,7 @@ Refer [this guide](../networkyaml-besu.md) for details on editing the configurat
 The `network.yaml` file should contain the specific `network.organization` details along with the transaction manager node details and existing validator and member node details.
 
 ---
-**NOTE**: Make sure that the genesis flie is provided in base64 encoding. Also, if you are adding node to the same cluster as of another node, make sure that you add the ambassador ports of the existing node present in the cluster to the network.yaml
+**NOTE**: Make sure that the genesis file is provided in base64 encoding. Also, if you are adding node to the same cluster as of another node, make sure that you add the ambassador ports of the existing node present in the cluster to the network.yaml
 
 ---
 For reference, sample `network-besu-new-validatororg.yaml` file [here](https://github.com/hyperledger/bevel/blob/main/platforms/hyperledger-besu/configuration/samples/network-besu-new-validatororg.yaml)

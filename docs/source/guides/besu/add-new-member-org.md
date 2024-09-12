@@ -27,7 +27,7 @@ This guide explains how to add a new validator node to an existing organization 
 
 1. **Update network.yaml file**
 
-    Refer [this guide](../networkyaml-besu.md) for details on editing the configuration file.
+    Make sure that the genesis file is provided in base64 encoding. Also, if you are adding node to the same cluster as of another node, make sure that you add the ambassador ports of the existing node present in the cluster to the network.yaml
 
     The `network.yaml` file should contain the specific `network.organization` details along with the enode information, genesis file in base64 encoding and tessera transaction manager details
 

@@ -39,7 +39,7 @@ Although, the file itself has comments for each key-value, here is a more detail
 The sections in the sample configuration file are  
 <a name="type"></a>
 type
-: `type` defines the platform choice like corda/fabric/indy/quorum/besu, here in the example its **besu**.
+: `type` defines the platform choice like corda/fabric/indy/quorum/besu, here in the example it's **besu**.
 
 <a name="version"></a>
 version
@@ -55,7 +55,7 @@ permissioning
 
 <a name="env"></a>
 env
-: `env` section contains the environment type and additional (other than 443) Ambassador port configuration. Vaule for proxy field under this section can be 'ambassador' as 'haproxy' has not been implemented for Besu.
+: `env` section contains the environment type and additional (other than 443) Ambassador port configuration. Value for proxy field under this section can be 'ambassador' as 'haproxy' has not been implemented for Besu.
 
 The snippet of the `env` section with example value is below
 
@@ -70,7 +70,7 @@ The fields under `env` section are
 | type       | Environment type. Can be like dev/test/prod.|
 | proxy      | Choice of the Cluster Ingress controller. Currently supports 'ambassador' only as 'haproxy' has not been implemented for Hyperledger Besu |
 | ambassadorPorts   | Any additional Ambassador ports can be given here. This is only valid if `proxy: ambassador`. These ports are enabled per cluster, so if you have multiple clusters you do not need so many ports to be opened on Ambassador. Our sample uses a single cluster, so we have to open 4 ports for each Node. These ports are again specified in the `organization` section.     |
-| loadBalancerSourceRanges | (Optional) Restrict inbound access to a single or list of IP adresses for the public Ambassador ports to enhance Bevel network security. This is only valid if `proxy: ambassador`.  |
+| loadBalancerSourceRanges | (Optional) Restrict inbound access to a single or list of IP addresses for the public Ambassador ports to enhance Bevel network security. This is only valid if `proxy: ambassador`.  |
 | retry_count       | Retry count for the checks. Use a high number if your cluster is slow. |
 |external_dns       | If the cluster has the external DNS service, this has to be set `enabled` so that the hosted zone is automatically updated. |
 | namespace         | (Optional) K8s Namespace on which proxy will be installed. Default value is `default`|
@@ -206,7 +206,7 @@ The fields under `peer` service are
 | tm_nodeport.ambassador | The tm port when exposed on ambassador service. |
 | tm_clientport.port   | Client Port used by Transaction manager `tessera`. This is the port where Besu nodes connect to their respective transaction manager. |
 
-The peer in an organization with type as `member` can be used to deploy the smarcontracts with additional field `peer.smart_contract`. The snapshot of peers service with example values is below
+The peer in an organization with type as `member` can be used to deploy the smartcontracts with additional field `peer.smart_contract`. The snapshot of peers service with example values is below
 ```yaml
         peers:
         - peer:
@@ -246,7 +246,7 @@ The additional fields under `peer` service are
 | smart_contract.contract_path | Path of the smart contract folder relative to deployjs_path  |
 | smart_contract.iterations | Number of Iteration of executions for which the gas and the code is optimised  |
 | smart_contract.entrypoint | Main entrypoint solidity file of the smart contract   |
-| smart_contract.private_for | Comma seperated string of `tessera` Public keys for the `privateFor`  |
+| smart_contract.private_for | Comma separated string of `tessera` Public keys for the `privateFor`  |
 
 Each organization with type as `validator` will have a validator service. The snippet of validator service with example values is below
 ```yaml

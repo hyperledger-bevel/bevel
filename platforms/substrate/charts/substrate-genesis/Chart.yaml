@@ -9,7 +9,7 @@ apiVersion: v2
 name: substrate-genesis
 description: A Helm chart to generate the genesis for Substrate Nodes
 type: application
-version: 1.0.0
+version: 1.1.0
 appVersion: latest
 keywords:
   - bevel

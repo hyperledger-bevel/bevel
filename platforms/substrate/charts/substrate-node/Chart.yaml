@@ -8,7 +8,7 @@ apiVersion: v2
 name: substrate-node
 description: A Helm chart to deploy Substrate/Polkadot nodes
 type: application
-version: 1.0.0
+version: 1.1.0
 appVersion: latest
 keywords:
   - bevel

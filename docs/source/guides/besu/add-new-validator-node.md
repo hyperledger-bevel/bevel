@@ -17,8 +17,25 @@ This guide explains how to add a new validator node to an existing organization 
 
     To add a new node in Besu, an existing besu network should be running, enode information of all existing nodes present in the network should be available, genesis file should be available in base64 encoding and the information of transaction manager nodes and existing validator nodes should be available. The new node account should be unlocked prior adding the new node to the existing besu network. 
 
-    ---
-    **NOTE**: Addition of a new validator node has been tested on an existing network which is created by Bevel. Networks created using other methods may be suitable but this has not been tested by Bevel team.
+The `network.yaml` file should contain the specific `network.organization` details along with the tessera transaction manager node details and existing validator and member node details.
+
+---
+**NOTE**: Make sure that the genesis file is provided in base64 encoding. Also, if you are adding node to the same cluster as of another node, make sure that you add the ambassador ports of the existing node present in the cluster to the network.yaml
+
+---
+For reference, sample `network-besu-new-validatornode.yaml` file [here](https://github.com/hyperledger/bevel/blob/main/platforms/hyperledger-besu/configuration/samples/network-besu-new-validatornode.yaml)
+
+```yaml
+--8<-- "platforms/hyperledger-besu/configuration/samples/network-besu-new-validatornode.yaml:1:201"
+```
+
+Three new sections are added to the network.yaml   
+
+| Field       | Description                                              |
+|-------------|----------------------------------------------------------|
+| tm_nodes | Existing network's transaction manager nodes' public addresses with nodeport.|
+| besu_nodes | Existing network's besu nodes' public addresses with rpc port.|
+| genesis | Path to existing network's genesis.json in base64.|
 
 
 1. **Update configuration file**

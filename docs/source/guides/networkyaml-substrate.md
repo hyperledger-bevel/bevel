@@ -40,7 +40,7 @@ Use this [sample configuration file](https://github.com/hyperledger/bevel/blob/m
 <a name="type"></a>
 
 ## type
-- `type` defines the platform choice like corda/fabric/indy/substrate, here in the example its **substrate**.
+- `type` defines the platform choice like corda/fabric/indy/substrate, here in the example it's **substrate**.
 
 <a name="version"></a>
 
@@ -135,7 +135,7 @@ The `organization` under the `organizations` section has the following fields.
 | k8s                  | Kubernetes cluster deployment variables.|
 | vault                | Contains Hashicorp Vault server address and root-token in the example |
 | gitops               | Git Repo details which will be used by GitOps/Flux. |
-| services             | Contains list of services which could ca/peer/orderers/concensus based on the type of organization |
+| services             | Contains list of services which could ca/peer/orderers/consensus based on the type of organization |
 
 For the `aws`, `k8s` and `vault` field the snapshot with sample values is below
 

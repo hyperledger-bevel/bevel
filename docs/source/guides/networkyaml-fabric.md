@@ -46,7 +46,7 @@ Use this [sample configuration file](https://github.com/hyperledger/bevel/blob/m
 
 <a name="type"></a>
 type
-: `type` defines the platform choice like corda/fabric/quorum, here in the example its **Fabric**.
+: `type` defines the platform choice like corda/fabric/quorum, here in the example it's **Fabric**.
 
 <a name="version"></a>
 version
@@ -162,7 +162,7 @@ Each `organization` field under `participants` field of the channel contains the
 |---------------------------------|------------------------------------------------------------|
 | name               | Organization name of the peer participating in the channel |
 | type               | This field can be creator/joiner of channel                |
-| org_status         | `new` (for inital setup) or `existing` (for add new org) | 
+| org_status         | `new` (for initial setup) or `existing` (for add new org) | 
 | ordererAddress     | URL of the orderer this peer connects to, including port                  |
 | peer.name          | Name of the peer                                           |
 | peer.type                          | Type can be `anchor` and `nonanchor` for Peer                                                                    |
@@ -202,7 +202,7 @@ Each `organization` under the `organizations` section has the following fields.
 | location                                    |  Location of the organization                                                                                    |
 | subject                                     | Subject format can be referred at [OpenSSL Subject](https://www.openssl.org/docs/man1.0.2/man1/openssl-req.html) |
 | external_url_suffix                         | Public url suffix of the cluster.         |
-| org_status         | `new` (for inital setup) or `existing` (for add new org) |
+| org_status         | `new` (for initial setup) or `existing` (for add new org) |
 | orderer_org        |  Ordering service provider.                              |  
 | ca_data                                     | Contains the certificate path; this has not been implemented yet |
 | cloud_provider                              | Cloud provider of the Kubernetes cluster for this organization. This field can be aws, azure, gcp or minikube |
@@ -210,7 +210,7 @@ Each `organization` under the `organizations` section has the following fields.
 | k8s                                         | Kubernetes cluster deployment variables.|
 | vault                                       | Contains Hashicorp Vault server address and root-token in the example |
 | gitops                                      | Git Repo details which will be used by GitOps/Flux. |
-| services                                    | Contains list of services which could ca/peer/orderers/concensus based on the type of organization |
+| services                                    | Contains list of services which could ca/peer/orderers/consensus based on the type of organization |
 
 For the aws and k8s field the snapshot with sample values is below
 
@@ -273,7 +273,7 @@ The fields under `user` are
 | Field       | Description                                              |
 |-------------|----------------------------------------------------------|
 | identity          | The name of the user        |
-| attribute   | key value pair for the different attributes supported in Fabric, details about the attribues are [here](https://hyperledger-fabric-ca.readthedocs.io/en/latest/users-guide.html#attribute-based-access-control) |
+| attribute   | key value pair for the different attributes supported in Fabric, details about the attributes are [here](https://hyperledger-fabric-ca.readthedocs.io/en/latest/users-guide.html#attribute-based-access-control) |
 
 
 The services field for each organization under `organizations` section of Fabric contains list of `services` which could be ca/orderers/consensus/peers based on if the type of organization. 
@@ -341,7 +341,7 @@ The chaincodes section contains the list of chaincode for the peer, the fields u
 | image | Mandatory for external_chaincode, the container from docker registry applicable for this chaincode. For private registry, ensure password is passed in `network.docker` section |
 | crypto_mount_path | Required only when `tls: true`, the path where the crypto materials will be stored |
 
-The organization with orderer type will have concensus service. The snapshot of consensus service with example values is below
+The organization with orderer type will have consensus service. The snapshot of consensus service with example values is below
 
 ```yaml
 --8<-- "platforms/hyperledger-fabric/configuration/samples/network-fabricv2.yaml:228:229"

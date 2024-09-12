@@ -8,7 +8,7 @@ apiVersion: v2
 name: dscp-ipfs-node
 appVersion: '2.6.1'
 description: dscp-ipfs is a component of the DSCP project that provides a distributed IPFS based storage solution for the DSCP platform.
-version: 1.0.0
+version: 1.1.0
 type: application
 annotations:
   hyperledger-bevel/platform: substrate

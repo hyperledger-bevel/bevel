@@ -41,7 +41,7 @@ The sections in the sample configuration file are
 
 <a name="type"></a>
 type
-: `type` defines the platform choice like corda/fabric/indy/quorum, here in the example its **quorum**.
+: `type` defines the platform choice like corda/fabric/indy/quorum, here in the example it's **quorum**.
 
 <a name="version"></a>
 version
@@ -53,7 +53,7 @@ version
 
 <a name="env"></a>
 env
-: `env` section contains the environment type and additional (other than 443) Ambassador port configuration. Vaule for proxy field under this section can be 'ambassador' or 'haproxy'
+: `env` section contains the environment type and additional (other than 443) Ambassador port configuration. Value for proxy field under this section can be 'ambassador' or 'haproxy'
 
 The snippet of the `env` section with example value is below
 
@@ -68,7 +68,7 @@ The fields under `env` section are
 | type       | Environment type. Can be like dev/test/prod.|
 | proxy      | Choice of the Cluster Ingress controller. Currently supports 'ambassador' only as 'haproxy' has not been implemented for Quorum |
 | ambassadorPorts   | Any additional Ambassador ports can be given here. This is only valid if `proxy: ambassador`. These ports are enabled per cluster, so if you have multiple clusters you do not need so many ports to be opened on Ambassador. Our sample uses a single cluster, so we have to open 4 ports for each Node. These ports are again specified in the `organization` section.     |
-| loadBalancerSourceRanges | Restrict inbound access to a single or list of IP adresses for the public Ambassador ports to enhance Bevel network security. This is only valid if `proxy: ambassador`.  |
+| loadBalancerSourceRanges | Restrict inbound access to a single or list of IP addresses for the public Ambassador ports to enhance Bevel network security. This is only valid if `proxy: ambassador`.  |
 | retry_count       | Retry count for the checks. Use a high number if your cluster is slow. |
 |external_dns       | If the cluster has the external DNS service, this has to be set `enabled` so that the hosted zone is automatically updated. |
 
@@ -136,7 +136,7 @@ Each `organization` under the `organizations` section has the following fields.
 | k8s                                         | Kubernetes cluster deployment variables.|
 | vault                                       | Contains Hashicorp Vault server address and root-token in the example |
 | gitops                                      | Git Repo details which will be used by GitOps/Flux. |
-| services                                    | Contains list of services which could ca/peer/orderers/concensus based on the type of organization |
+| services                                    | Contains list of services which could ca/peer/orderers/consensus based on the type of organization |
 
 For the `aws` `vault` and `k8s` field the snippet with sample values is below
 ```yaml
