@@ -26,7 +26,7 @@ spec:
       vault:
         type: hashicorp
         network: fabric
-        address: http://172.17.220.191:8200
+        address: http://172.17.220.191:8200/
         authPath: localsupplychain
         secretEngine: secretsv2
         secretPrefix: "data/localsupplychain"
