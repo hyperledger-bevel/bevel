@@ -1,0 +1,58 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: ca
+  namespace: supplychain-net
+  annotations:
+    fluxcd.io/automated: "false"
+spec:
+  interval: 1m
+  releaseName: ca
+  chart:
+    spec:
+      interval: 1m
+      sourceRef:
+        kind: GitRepository
+        name: flux-local
+        namespace: flux-local
+      chart: platforms/hyperledger-fabric/charts/fabric-ca-server   
+  values:
+    global:
+      serviceAccountName: vault-auth
+      cluster:
+        provider: minikube
+        cloudNativeServices: false
+        kubernetesUrl: https://127.0.0.1:32769
+      vault:
+        type: hashicorp
+        network: fabric
+        address: http://172.17.220.191:8200
+        authPath: localsupplychain
+        secretEngine: secretsv2
+        secretPrefix: "data/localsupplychain"
+        role: vault-role
+        tls: false
+      proxy:
+        provider: none
+        externalUrlSuffix: develop.local.com
+
+    storage:
+      size: 512Mi
+      reclaimPolicy: "Delete"
+      volumeBindingMode: Immediate
+      allowedTopologies:
+        enabled: false
+
+    image:
+      alpineUtils: ghcr.io/hyperledger/bevel-alpine:latest
+      ca: ghcr.io/hyperledger/bevel-fabric-ca:1.4.8
+      pullSecret: ""
+
+    server:
+      removeCertsOnDelete: true
+      tlsStatus: true
+      adminUsername: supplychain-admin
+      adminPassword: supplychain-adminpw
+      subject: "/C=GB/ST=London/L=London/O=Orderer/CN=ca.supplychain-net"
+      clusterIpPort: 7054
+
