@@ -22,7 +22,7 @@ spec:
       cluster:
         provider: minikube
         cloudNativeServices: false
-        kubernetesUrl: https://127.0.0.1:32774
+        kubernetesUrl: https://192.168.49.2:8443
       vault:
         type: hashicorp
         network: fabric
@@ -46,7 +46,7 @@ spec:
     image:
       alpineUtils: ghcr.io/hyperledger/bevel-alpine:latest
       ca: ghcr.io/hyperledger/bevel-fabric-ca:1.4.8
-      pullSecret: ""
+      pullSecret: regcred
 
     server:
       removeCertsOnDelete: true
