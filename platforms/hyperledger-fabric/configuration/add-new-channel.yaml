@@ -10,7 +10,7 @@
 # and want to add a new channel to the existing network
 ##########################################################################################
 # This playbook can only be run after all pods and orderers are available
-# Please edit the same network.yaml according to the documenation in docs/sourc/operations/add_new_channel_fabric.md.
+# Please edit the same network.yaml according to the documentation in docs/sourc/operations/add_new_channel_fabric.md.
 # Refer the example under platforms/hyperledger-fabric/configurations/samples/network-fabric-add-new-channel.yaml
 ---
   # This will apply to ansible_provisioners. /etc/ansible/hosts should be configured with this group
