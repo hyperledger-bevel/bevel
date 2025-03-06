@@ -196,8 +196,8 @@ spec:
                 }
               }}' /tmp/genesis.json.raw)" > /tmp/genesis.json.raw
               {{- end }}
+              echo "$(jq '.config += {"contractSizeLimit": 2147483647}' /tmp/genesis.json)" > /tmp/genesis.json.raw
               cp /tmp/genesis.json.raw $FOLDER_PATH/besu/genesis.json
-
               echo $FOLDER_PATH
               echo "Creating genesis configmap in k8s ..."
               safeWriteGenesisConfigmap $FOLDER_PATH
