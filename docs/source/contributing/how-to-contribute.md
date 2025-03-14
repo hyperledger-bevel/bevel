@@ -48,6 +48,36 @@ Each commit must include a "Signed-off-by" line in the commit message (`git comm
 
 Your commit email address must match your GitHub email address. For more information, see https://help.github.com/articles/setting-your-commit-email-address-in-git/
 
+### Maintainers
+Being a maintainer of a Hyperledger project means taking on a leadership role in overseeing and managing the development, maintenance, and governance of the project. The responsibilities include:
+
+1. Code Review and Merging: Reviewing contributions (pull requests) from the community and deciding which ones should be merged into the project’s codebase.
+
+2. Releasing Updates: Ensuring that the project is updated regularly with bug fixes, new features, and security patches, and managing the release process.
+
+3. Community Engagement: Actively engaging with the project’s community, including addressing issues, participating in discussions, mentoring contributors, and encouraging new participants to get involved.
+
+4. Maintaining Documentation: Keeping the project's documentation accurate, up-to-date, and comprehensive for both developers and users.
+
+5. Project Roadmap and Strategy: Helping to define the vision, roadmap, and direction of the project, ensuring alignment with the overall goals of the LF Decentralized Trust ecosystem.
+
+6. Ensuring Quality and Security: Ensuring that the codebase is secure, high-quality, and adheres to industry best practices.
+
+Being a maintainer requires strong technical expertise, leadership, and a commitment to the project's success and the broader open-source community.
+
+###  Becoming a maintainer
+The project's maintainers will, from time-to-time, consider adding a maintainer, based on the following criteria:
+
+- Demonstrated track record of PR reviews (both quality and quantity of reviews)
+- Demonstrated thought leadership in the project
+- Contributions to the community, such as blog posts, webinars, or demos about the tool, are a plus
+- Demonstrated shepherding of project work and contributors
+- Demonstrated influential contributions that have notably enhanced the source code.
+- Demonstrated through contributions that you have outstanding knowledge and skills in Blockchain technology and the different DLTs under the LF Decentralized Trust ecosystem, automation, and cloud environments to be a maintainer of Bevel.
+- An existing maintainer can submit a pull request to the maintainers file. A nominated Contributor may become a Maintainer by a majority approval of the proposal by the existing Maintainers. Once approved, the change set is then merged and the individual is added to the maintainers group.
+
+Maintainers may be removed by explicit resignation, for prolonged inactivity (e.g. 3 or more months with no review comments), or for some infraction of the code of conduct or by consistently demonstrating poor judgement. A proposed removal also requires a majority approval. A maintainer removed for inactivity should be restored following a sustained resumption of contributions and reviews (a month or more) demonstrating a renewed commitment to the project.
+
 ### Important GitHub Requirements
 
 A pull request cannot merged until it has passed these status checks:
