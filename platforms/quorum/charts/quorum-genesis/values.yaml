@@ -43,7 +43,8 @@ rawGenesisConfig:
         emptyBlockPeriod: 60
         epochlength: 30000
         requesttimeoutseconds: 20
-    gasLimit: '0x47b760'
+    gasLimit: '0x1fffffffffffff'
+    contractSizeLimit: 2147483647
     difficulty: '0x1'
     coinbase: '0x0000000000000000000000000000000000000000'
     includeQuickStartAccounts: false
