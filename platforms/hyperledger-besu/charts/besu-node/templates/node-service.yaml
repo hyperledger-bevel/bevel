@@ -140,4 +140,6 @@ metadata:
 spec:
   hostname: '{{ .Release.Name }}ws.{{ .Values.global.proxy.externalUrlSuffix }}'
   prefix: /
-  service: http://{{ include "besu-node.fullname" . }}.{{ .Release.Namespace }}:{{ .Values.node.besu.ws.port }}
+  service: {{ include "besu-node.fullname" . }}.{{ .Release.Namespace }}:{{ .Values.node.besu.ws.port }}
+  allow_upgrade:
+  - websocket
