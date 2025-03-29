@@ -15,7 +15,7 @@ data:
 {{ (.Files.Glob "scripts/aws-secret-manager-script.py").AsConfig | indent 2 }}
 {{- end }}
 {{- else }}
-{{- if eq .Values.global.vault.type "hashicorp" }}
+{{- if has .Values.global.vault.type (list "hashicorp" "kubernetes") }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
