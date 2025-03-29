@@ -287,6 +287,8 @@ spec:
           - name: store-vault-users
             mountPath: /scripts/peer/store-vault-users.sh
             subPath: store-vault-users.sh
+{{- if (eq .Values.global.vault.type "hashicorp") }}
           - name: scripts-volume
             mountPath: /scripts/bevel-vault.sh
             subPath: bevel-vault.sh
+{{- end }}
