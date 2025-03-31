@@ -44,7 +44,5 @@ spec:
         args:
         - |
             {{- if .Values.removeGenesisOnDelete.enabled }}
-                if kubectl get configmap "substrate-genesis" --namespace {{ .Release.Namespace }}  &> /dev/null; then
-                  kubectl delete configmap "substrate-genesis" --namespace {{ .Release.Namespace }}
-                fi
+                    kubectl delete secret "{{ .Release.Name }}-keys" --namespace {{ .Release.Namespace }}
             {{- end}}

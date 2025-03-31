@@ -172,6 +172,11 @@ spec:
               {{- range .Values.rawGenesisConfig.genesis.additionalAccounts }}
               echo "$(jq '.alloc += {($address): {"balance": "90000000000000000000000"}}' --arg address {{ . }} /tmp/genesis.json.raw)" > /tmp/genesis.json.raw
               {{- end }}
+              {{- if .Values.rawGenesisConfig.initialContractDeployment.enabled }}
+              {{- range .Values.rawGenesisConfig.initialContractDeployment.contracts }}
+              echo "$(jq '.alloc += {($address): {"balance": "90000000000000000000000", "code": ($bytecode)}}' --arg address {{ .address }} --arg bytecode {{ .bytecode }} /tmp/genesis.json.raw)" > /tmp/genesis.json.raw
+              {{- end }}
+              {{- end }}
               {{- if .Values.rawGenesisConfig.genesis.permissioning }}
               echo "Adding permissioning contracts to genesis"
               echo "$(jq '.alloc += {
@@ -196,8 +201,8 @@ spec:
                 }
               }}' /tmp/genesis.json.raw)" > /tmp/genesis.json.raw
               {{- end }}
+              echo "$(jq '.config += {"contractSizeLimit": 2147483647}' /tmp/genesis.json.raw)" > /tmp/genesis.json.raw
               cp /tmp/genesis.json.raw $FOLDER_PATH/besu/genesis.json
-
               echo $FOLDER_PATH
               echo "Creating genesis configmap in k8s ..."
               safeWriteGenesisConfigmap $FOLDER_PATH

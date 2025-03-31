@@ -60,7 +60,7 @@ rawGenesisConfig:
         blockperiodseconds: 10
         epochlength: 30000
         requesttimeoutseconds: 20
-    gasLimit: '0xf7b760' 
+    gasLimit: '0x1fffffffffffff'
     difficulty: '0x1'
     coinbase: '0x0000000000000000000000000000000000000000'
     contractSizeLimit: 2147483647
@@ -68,6 +68,8 @@ rawGenesisConfig:
     includeQuickStartAccounts: false
     additionalAccounts: []
     permissioning: false
+  initialContractDeployment:
+    enabled: false
   blockchain:
     nodes:
       generate: true

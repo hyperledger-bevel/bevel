@@ -66,15 +66,15 @@ googleCloudSdk:
 imagePullSecrets: []
 
 serviceAccount:
-  # Specifies whether a service account should be created
+#   # Specifies whether a service account should be created
   create: false
-  # Annotations to add to the service account
+#   # Annotations to add to the service account
   annotations: {}
-  # The name of the service account to use.
-  # If not set and create is true, a name is generated using the fullname template
-  # Provide the service account name authenticated to vault.
-  # NOTE: Make sure that the service account is already created and authenticated to use the vault.
-  # Eg. name: vault-auth
+#   # The name of the service account to use.
+#   # If not set and create is true, a name is generated using the fullname template
+#   # Provide the service account name authenticated to vault.
+#   # NOTE: Make sure that the service account is already created and authenticated to use the vault.
+#   # Eg. name: vault-auth
   name: vault-auth
 
 podSecurityContext:
@@ -112,7 +112,7 @@ node:
   # Eg. command: substrate
   command: ./dscp-node
   isBootnode:
-    enabled: true # false | true
+    enabled: false # false | true
     bootnodeName: validator-1
     bootnodeAddr: validator-1-substrate-node-0-rc-p2p.supplychain-subs #if using proxy set it to this validator-1.<yourDomain.com>
     bootnodePort: 30333
@@ -179,7 +179,7 @@ node:
   ports:
     # Specifies the port to listen on for peer-to-peer (p2p) traffic
     # Eg. p2p: 30333
-    p2p: 30333 #30333 
+    p2p: 30333
     # Specifies the port to listen on for incoming WebSocket traffic
     # Eg. ws: 9944
     ws: 9944

@@ -27,7 +27,7 @@ data:
     node-private-key-file={{.Values.node.besu.privateKeyPath | quote }}
 
     # Transaction Pool
-    tx-pool-max-size={{ .Values.node.besu.txPool.maxCapacity }}
+    tx-pool-layer-max-capacity={{ .Values.node.besu.txPool.maxCapacity }}
 
     {{ if  .Values.node.besu.p2p.enabled -}}
     # P2P network

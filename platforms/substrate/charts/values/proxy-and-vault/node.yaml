@@ -13,15 +13,18 @@ global:
   cluster:
     provider: azure
     cloudNativeServices: false
-  vault:
-    type: hashicorp
-    network: substrate
-    address: http://vault.demo.com:8200
-    authPath: supplychain
-    secretEngine: secretsv2
-    secretPrefix: "data/supplychain"
-    role: vault-role
     
 proxy:
-  provider: ambassador  # none | ambassador
-  external_url: test.yourdomain.com  #specify the endpoint for the ambassador url 
+  provider: ambassador
+  external_url: test.yourdomain.com  # specify the endpoint for the ambassador url 
+  p2p: 
+
+node:
+  isBootnode:
+    enabled: true # false | true
+    bootnodeName: oem-validator-1
+    bootnodeAddr: oem-validator-1-node-substrate-node-0.stage.intelipoc.com
+    bootnodePort: 15011
+    boot_node_id: 
+
+node_keys_k8s:

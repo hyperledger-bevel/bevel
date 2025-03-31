@@ -293,6 +293,7 @@ spec:
                   --emptyBlockPeriod {{ .Values.rawGenesisConfig.genesis.config.algorithm.emptyBlockPeriod }} --epochLength {{ .Values.rawGenesisConfig.genesis.config.algorithm.epochlength }} \
                   --requestTimeout {{ .Values.rawGenesisConfig.genesis.config.algorithm.requesttimeoutseconds }} --difficulty {{ .Values.rawGenesisConfig.genesis.difficulty }} \
                   --gasLimit {{ .Values.rawGenesisConfig.genesis.gasLimit }} --coinbase {{ .Values.rawGenesisConfig.genesis.coinbase }} \
+                  --maxCodeSize {{ .Values.rawGenesisConfig.genesis.contractSizeLimit }} \
                   {{ if .Values.rawGenesisConfig.blockchain.accountPassword }} --accountPassword {{ .Values.rawGenesisConfig.blockchain.accountPassword }} {{ end }} \
                   --quickstartDevAccounts {{ .Values.rawGenesisConfig.genesis.includeQuickStartAccounts }} \
                   --outputPath /generated-config | tail -1 | sed -e "s/^Artifacts in folder: //")

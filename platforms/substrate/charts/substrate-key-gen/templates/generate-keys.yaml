@@ -9,12 +9,8 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ .Release.Name }}-generate-keys
-  namespace: {{ .Release.Namespace }}
-  annotations:
-    "helm.sh/hook": post-install
-    "helm.sh/hook-weight": "1"
-    "helm.sh/hook-delete-policy": "before-hook-creation"
+  name: "{{ .Release.Name }}-generate-keys"
+  namespace: "{{ .Release.Namespace }}"
   labels:
     app: genesis
     app.kubernetes.io/name: pre-install-hook
@@ -102,6 +98,7 @@ spec:
                   
                   # Read secret from vault
                   vaultBevelFunc "readJson" "${VAULT_SECRET_ENGINE}/${VAULT_SECRET_PREFIX}/${key}"
+                  
                   # Check if secrets are available in the vault
                   if [ "$SECRETS_AVAILABLE" == "yes" ]
                     then
@@ -116,21 +113,22 @@ spec:
                       local grandpa_file_b64=$(echo ${VAULT_SECRET} | jq -r '.["grandpa_file_b64"]' | base64 -d)
                       
                       # Check if Kubernetes secret exists, if not, create one
-                      if ! kubectl get secret substrate-node-validator-${i}-keys --namespace {{ .Release.Namespace }} &> /dev/null; then                      
-                        kubectl create secret generic substrate-node-validator-${i}-keys --namespace {{ .Release.Namespace }} \
+                      echo "Check if Kubernetes secret exists, if not, create one"
+                      if ! kubectl get secret "{{ .Release.Name }}-keys" --namespace "{{ .Release.Namespace }}" &> /dev/null; then
+                        kubectl create secret generic "{{ .Release.Name }}-keys" --namespace "{{ .Release.Namespace }}" \
                         --from-literal=node_id=${node_id} \
                         --from-literal=node_key=${node_key} \
                         --from-literal=aura_seed=${aura_seed} \
                         --from-literal=aura_addr=${aura_addr} \
                         --from-literal=grandpa_seed=${grandpa_seed} \
                         --from-literal=grandpa_addr=${grandpa_addr} \
-                        --from-literal=aura_file_b64=${aura_file_b64}
+                        --from-literal=aura_file_b64=${aura_file_b64} \
                         --from-literal=grandpa_file_b64=${grandpa_file_b64}
                       fi
                   else
                     # Push data to vault
-                    vaultBevelFunc 'write' "${VAULT_SECRET_ENGINE}/${VAULT_SECRET_PREFIX}/${key}" "${payload_json}" #${key}" 
-                    #rm nodePayload.json
+                    echo "Push data to vault"
+                    vaultBevelFunc 'write' "${VAULT_SECRET_ENGINE}/${VAULT_SECRET_PREFIX}/${key}" "${payload_json}"
                   fi
                 }
 {{- else }}
@@ -152,23 +150,23 @@ spec:
 
                 generate_nodekey() {
                   local node_type="$1"
-                  local node_index="$2"
+                  # local node_index="$2"
                   local node_id="$($command key generate-node-key --file node_key 2>&1)"
                   
                   # Generate keys for aura and grandpa
-                  generate_key "Sr25519" "auraKeygenOutput_${node_type}${node_index}.json"
-                  AURA_SEED=$(jq -r '.secretSeed' "auraKeygenOutput_${node_type}${node_index}.json")
-                  AURA_ADDR=$(jq -r '.ss58Address' "auraKeygenOutput_${node_type}${node_index}.json")
+                  generate_key "Sr25519" "auraKeygenOutput_${node_type}.json"
+                  AURA_SEED=$(jq -r '.secretSeed' "auraKeygenOutput_${node_type}.json")
+                  AURA_ADDR=$(jq -r '.ss58Address' "auraKeygenOutput_${node_type}.json")
                   
-                  generate_key "Ed25519" "grandpaKeygenOutput_${node_type}${node_index}.json"
-                  GRANDPA_SEED=$(jq -r '.secretSeed' "grandpaKeygenOutput_${node_type}${node_index}.json")
-                  GRANDPA_ADDR=$(jq -r '.ss58Address' "grandpaKeygenOutput_${node_type}${node_index}.json")
+                  generate_key "Ed25519" "grandpaKeygenOutput_${node_type}.json"
+                  GRANDPA_SEED=$(jq -r '.secretSeed' "grandpaKeygenOutput_${node_type}.json")
+                  GRANDPA_ADDR=$(jq -r '.ss58Address' "grandpaKeygenOutput_${node_type}.json")
                   
                   if [[ "$node_type" == "member" ]]; then
                     # For member nodes, also generate account keys
-                    generate_key "Sr25519" "accKeygenOutput_${node_type}${node_index}.json"
-                    ACCOUNT_SEED=$(jq -r '.secretSeed' "accKeygenOutput_${node_type}${node_index}.json")
-                    ACCOUNT_ADDR=$(jq -r '.ss58Address' "accKeygenOutput_${node_type}${node_index}.json")
+                    generate_key "Sr25519" "accKeygenOutput_${node_type}.json"
+                    ACCOUNT_SEED=$(jq -r '.secretSeed' "accKeygenOutput_${node_type}.json")
+                    ACCOUNT_ADDR=$(jq -r '.ss58Address' "accKeygenOutput_${node_type}.json")
                       
                       echo "{
                         \"data\": {
@@ -180,12 +178,12 @@ spec:
                           \"grandpa_addr\": \"$GRANDPA_ADDR\",
                           \"account_seed\": \"$ACCOUNT_SEED\",
                           \"account_addr\": \"$ACCOUNT_ADDR\",
-                          \"account_file_b64\": \"$(cat accKeygenOutput_${node_type}${node_index}.json | base64 -w 0)\",
-                          \"aura_file_b64\": \"$(cat auraKeygenOutput_${node_type}${node_index}.json | base64 -w 0)\",
-                          \"grandpa_file_b64\": \"$(cat grandpaKeygenOutput_${node_type}${node_index}.json | base64 -w 0)\"
+                          \"account_file_b64\": \"$(cat accKeygenOutput_${node_type}.json | base64 -w 0)\",
+                          \"aura_file_b64\": \"$(cat auraKeygenOutput_${node_type}.json | base64 -w 0)\",
+                          \"grandpa_file_b64\": \"$(cat grandpaKeygenOutput_${node_type}.json | base64 -w 0)\"
                         }
                       }" > finalJSON.json
-                      secret_name="substrate-node-${node_type}-${node_index}-keys"
+                      secret_name="{{ .Release.Name }}-keys"
                   else
                     echo "{
                       \"data\": {
@@ -195,15 +193,16 @@ spec:
                         \"aura_addr\": \"$AURA_ADDR\",
                         \"grandpa_seed\": \"$GRANDPA_SEED\",
                         \"grandpa_addr\": \"$GRANDPA_ADDR\",
-                        \"aura_file_b64\": \"$(cat auraKeygenOutput_${node_type}${node_index}.json | base64 -w 0)\",
-                        \"grandpa_file_b64\": \"$(cat grandpaKeygenOutput_${node_type}${node_index}.json | base64 -w 0)\"
+                        \"aura_file_b64\": \"$(cat auraKeygenOutput_${node_type}.json | base64 -w 0)\",
+                        \"grandpa_file_b64\": \"$(cat grandpaKeygenOutput_${node_type}.json | base64 -w 0)\"
                       }
                     }" > finalJSON.json
-                    secret_name="substrate-node-${node_type}-${node_index}-keys"
+                    secret_name="{{ .Release.Name }}-keys"
                   fi
                   
                   # Create Kubernetes secret if it doesn't exist
                   if ! kubectl get secret "${secret_name}" --namespace "{{ .Release.Namespace }}" &> /dev/null; then
+                    echo "Hello - 2"
                     echo "creating secrets"
                     kubectl create secret generic "${secret_name}" --namespace "{{ .Release.Namespace }}" --from-file="substrate-node-keys"="finalJSON.json"
                   fi
@@ -213,23 +212,21 @@ spec:
                 main() {
                   command={{ $.Values.node.command }}
                   # Generate keys for member nodes
-                  for ((i=1; i<= {{ $.Values.node.member.count }}; i++)); do
-                      if [[ $.Values.global.vault.type != "hashicorp" ]]; then
-                          echo "Generating nodekey for member-$i"
-                          generate_nodekey "member" "$i"
-                      fi
-                      echo "Writing secrets for member-$i"
-                      safeWriteSecret "substrate-node-member-$i-keys" "finalJSON.json"
-                  done
+                  if [[ {{ $.Values.node.isMember }} == true ]]; then
+                    echo "Generating nodekey for the member node named {{ .Release.Name }}"
+                    generate_nodekey "member"
+                  fi
+                  
                   # Generate keys for validator nodes
-                  for ((i=1; i<= {{ $.Values.node.validator.count }}; i++)); do
-                      if [[ $.Values.global.vault.type != "hashicorp" ]]; then
-                          echo "Generating nodekey for validator-$i"
-                          generate_nodekey "validator" "$i"
-                      fi
-                      echo "Writing secrets for validator-$i"
-                      safeWriteSecret "substrate-node-validator-$i-keys" "finalJSON.json"
-                  done
+                  if [[ {{ $.Values.node.isValidator }} == true ]]; then
+                    echo "Generating nodekey for the validator node named {{ .Release.Name }}"
+                    generate_nodekey "validator"
+                  fi
+                  
+                  if [[ {{ $.Values.global.vault.type }} == "hashicorp" ]]; then
+                    echo "Writing secrets for {{ .Release.Name }} over the vault"
+                    safeWriteSecret "{{ .Release.Name }}" "finalJSON.json"
+                  fi
                 }
                 main
       volumes:

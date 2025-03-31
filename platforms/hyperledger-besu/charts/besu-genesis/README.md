@@ -94,6 +94,7 @@ These parameters are refered to as same in each parent or child chart
 | `rawGenesisConfig.genesis.difficulty` | Difficulty setting  | `'0x1'`         |
 | `rawGenesisConfig.genesis.coinbase`   | Coinbase setting | `'0x0000000000000000000000000000000000000000'`         |
 | `rawGenesisConfig.genesis.includeQuickStartAccounts`   | Flag to include default accounts | `false`         |
+| `rawGenesisConfig.genesis.initialContractDeployment.enabled`   | Flag to enable initial contract deployment | `false`         |
 | `rawGenesisConfig.blockchain.nodes.generate` | Flag to generate the initial nodes as per the `count` below   | `true`    |
 | `rawGenesisConfig.blockchain.nodes.count`   | Number of validators/signers. | `4` |
 | `rawGenesisConfig.blockchain.accountPassword` | Default password for the new accounts   | `'password'`    |

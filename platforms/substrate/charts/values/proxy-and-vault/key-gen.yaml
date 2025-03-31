@@ -6,11 +6,15 @@
 ---
 global:
   serviceAccountName: vault-auth
+  vault:
+    type: "hashicorp"
+    network: substrate
+    address: "http://vault.demo.com:8200"
+    authPath: oem
+    secretEngine: secretsv2
+    secretPrefix: "data/oem"
+    role: vault-role
   cluster:
     provider: azure
     cloudNativeServices: false
-  vault:
-    type: "kubernetes" # kubernetes | hashicorp
-
-proxy:
-  provider: none # none | ambassador
+    kubernetesUrl: https://kubernetes.url

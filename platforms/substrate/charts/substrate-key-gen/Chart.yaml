@@ -3,19 +3,26 @@
 #
 #  SPDX-License-Identifier: Apache-2.0
 ##############################################################################################
+
+---
 apiVersion: v2
-name: substrate-key-mgmt
-appVersion: 'latest'
+name: substrate-key-gen
 description: A Helm chart to generate the keys for Substrate Nodes
-version: 1.1.0
 type: application
-annotations:
-  hyperledger-bevel/platform: substrate
-  licenses: Apache-2.0
-home: https://github.com/hyperledger/bevel
+version: 1.1.0
+appVersion: latest
 keywords:
-  - DSCP
-  - BEVEL
-  - SUBSTRATE
+  - bevel
+  - ethereum
+  - substrate
+  - hyperledger
+  - enterprise
+  - blockchain
+  - deployment
+  - accenture
+home: https://hyperledger-bevel.readthedocs.io/en/latest/
 sources:
   - https://github.com/hyperledger/bevel
+maintainers:
+  - name: Hyperledger Bevel maintainers
+    email: bevel@lists.hyperledger.org

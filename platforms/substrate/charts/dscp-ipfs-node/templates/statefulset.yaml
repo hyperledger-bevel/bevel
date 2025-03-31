@@ -150,6 +150,7 @@ spec:
 
               peer_id=$(cat config | jq -r .Identity.PeerID)
               private_key=$(cat config | jq -r .Identity.PrivKey)
+              echo "peer_id: ${peer_id}"
 
 {{- if eq .Values.global.vault.type "hashicorp" }}
               echo "
@@ -169,7 +170,7 @@ spec:
                 jq -r 'if .errors then . else .auth.client_token end')
 
               validateVaultResponse 'vault login token' "${VAULT_CLIENT_TOKEN}"
-              vault_secret_key="${VAULT_SECRET_ENGINE}"/"${VAULT_SECRET_PREFIX}-ipfs-keys"
+              vault_secret_key="${VAULT_SECRET_ENGINE}"/"${VAULT_SECRET_PREFIX}/{{ .Release.Name }}-ipfs-keys"
               # Save the generated keys to VAULT
               LOOKUP_SECRET_RESPONSE=$(curl -sS -H "X-Vault-Token: ${VAULT_CLIENT_TOKEN}" \
                 -H "Content-Type: application/json" \

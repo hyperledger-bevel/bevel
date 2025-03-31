@@ -39,7 +39,8 @@ config:
   healthCheckPollPeriod: 30000
   healthCheckTimeout: 2000
   # External DSCP-Node hostname to query, this overrides dscpNode.enabled
-  nodeHost: member-1-substrate-node
+  # nodeHost: oem-member-1-node-substrate-node-0 # member-1-substrate-node
+  nodeHost:
   # External DSCP-Node port to query
   nodePort: 9944
   # Public key for the IPFS subsystem
@@ -66,7 +67,7 @@ config:
   ipfsLogLevel: info
   # IPFS boot node addresses in MultiAddress format for the IPFS subsystem
   ## ref: https://multiformats.io/multiaddr/
-  ipfsBootNodeAddress: ""
+  ipfsBootNodeAddress:
 
 service:
   # dscp-ipfs swarm service configuration

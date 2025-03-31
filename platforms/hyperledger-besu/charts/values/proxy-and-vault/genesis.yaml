@@ -23,9 +23,14 @@ rawGenesisConfig:
         blockperiodseconds: 10
         epochlength: 30000
         requesttimeoutseconds: 20
-    gasLimit: '0xf7b760' 
+    gasLimit: '0x1fffffffffffff'
     difficulty: '0x1'
     coinbase: '0x0000000000000000000000000000000000000000'
+  initialContractDeployment:
+    enabled: false
+    contracts:
+      - address: "0x71C7656EC7ab88b098defB751B7401B5f6d8976F"
+        bytecode: "53450942895849203584032548320548235492305423854923054238594320584329543205843902865029568459348205849230583428549328053428"
   blockchain:
     nodes:
       generate: true

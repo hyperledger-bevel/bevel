@@ -130,3 +130,16 @@ spec:
   port: {{ .Values.global.proxy.p2p }}
   service: {{ include "besu-node.fullname" . }}.{{ .Release.Namespace }}:{{ .Values.node.besu.p2p.port }}
 {{- end }}
+## Mapping for ws
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: {{ include "besu-node.fullname" . }}-ws
+  namespace: {{ .Release.Namespace }}
+spec:
+  hostname: '{{ .Release.Name }}ws.{{ .Values.global.proxy.externalUrlSuffix }}'
+  prefix: /
+  service: {{ include "besu-node.fullname" . }}.{{ .Release.Namespace }}:{{ .Values.node.besu.ws.port }}
+  allow_upgrade:
+  - websocket

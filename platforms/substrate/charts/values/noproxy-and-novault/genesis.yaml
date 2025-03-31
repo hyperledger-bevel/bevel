@@ -9,7 +9,7 @@
 
 # The following are for overriding global values
 global:
-  serviceAccountName: vault-auth
+  serviceAccountName: global-vault-sa
   cluster:
     provider: azure
     cloudNativeServices: false
@@ -17,9 +17,20 @@ global:
     # Provide the type of vault
     type: kubernetes # hashicorp | kubernetes
 
-node:
-  validator:
-      count: 4
-  member:
-    count: 1
-    balance: 1152921504606846976
+org_namespaces:
+  - oem1-subs:
+      validator:
+        - oem-validator-1
+        - oem-validator-2
+      member:
+        - oem-member-1
+  - tierone1-subs:
+      validator:
+        - tierone-validator-3
+        - tierone-validator-4
+      member:
+        - tierone-member-2
+  - tiertwo1-subs:
+      validator:
+      member:
+        - tiertwo-member-3

@@ -14,7 +14,7 @@
 # The following are for overriding global values
 global:
   # Provide the service account name which will be created.
-  serviceAccountName: global-vault-sa
+  serviceAccountName: vault-auth
   cluster:
     provider: # choose from: minikube | aws | azure
     cloudNativeServices: false # 'false' is implemented
@@ -23,13 +23,13 @@ global:
     kubernetesUrl:
   vault:
     # Provide the type of vault
-    type: hashicorp # hashicorp | kubernetes
+    type: "hashicorp" # hashicorp | kubernetes
     # Provide the vault role used.
-    role: # global-vault-role
+    role: vault-role
     # Provide the network type
     network: substrate
     # Provide the vault server address
-    address: # "http://vault_url"
+    address: "http://vault_url" # "http://inteli-vault.stage.intelipoc.com" # "http://vault_url"
     # Provide the vault authPath configured to be used.
     authPath: oem
     # Provide the secret engine.
@@ -51,31 +51,10 @@ chain: inteli
 node:
   # Pull substrate Docker image
   image: ghcr.io/inteli-poc/dscp-node
-  # Substrate image tag
-  imageTag: v4.3.1
-  # Pull policy to be used for the Docker image
-  # Eg. pullPolicy: IfNotPresent
-  pullPolicy: IfNotPresent
-  # Command to be invoked to perform operations on the node
-  # Eg. command: substrate
   command: ./dscp-node
-  member:
-    balance: 1152921504606846976
+  isValidator: false # true | false
+  isMember: false    # true | false
 
-org_namespaces:
-  - oem-subs:
-      validator:
-        - oem-validator-1
-        - oem-validator-2
-      member:
-        - oem-member-1
-  - tierone-subs:
-      validator:
-        - tierone-validator-3
-        - tierone-validator-4
-      member:
-        - tierone-member-2
-  - tiertwo-subs:
-      validator:
-      member:
-        - tiertwo-member-3
+tags:
+  bevel-vault-mgmt: false # true | false
+  bevel-scripts: false    # true | false

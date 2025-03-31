@@ -71,9 +71,9 @@ Create the name of the service account to use
 */}}
 {{- define "node.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (include "node.fullname" .) .Values.serviceAccount.name | lower }}
+{{- default (include "node.fullname" .) .Values.global.serviceAccountName | lower }}
 {{- else }}
-{{- default "default" .Values.serviceAccount.name | lower }}
+{{- default "default" .Values.global.serviceAccountName | lower }}
 {{- end }}
 {{- end }}
 

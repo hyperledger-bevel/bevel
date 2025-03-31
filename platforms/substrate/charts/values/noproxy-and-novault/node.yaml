@@ -14,4 +14,12 @@ global:
     provider: azure
     cloudNativeServices: false
   vault:
-    type: kubernetes # hashicorp | kubernetes
+    type: "kubernetes" # hashicorp | kubernetes
+
+node:
+  isBootnode:
+    enabled: true # false | true
+    bootnodeName: oem-validator-1
+    bootnodeAddr: oem-validator-1-node-substrate-node-0-rc-p2p.oem1-subs # if using proxy set it to this validator-1.<yourDomain.com>
+    bootnodePort: 30333
+    boot_node_id: 

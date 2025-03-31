@@ -124,3 +124,14 @@ spec:
   port: {{ .Values.global.proxy.p2p }}
   service: {{ include "quorum-node.fullname" . }}.{{ .Release.Namespace }}:{{ .Values.node.quorum.p2p.port }}
 {{- end }}
+## Mapping for ws
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: {{ include "quorum-node.fullname" . }}-json-ws
+  namespace: {{ .Release.Namespace }}
+spec:
+  hostname: '{{ .Release.Name }}ws.{{ .Values.global.proxy.externalUrlSuffix }}'
+  prefix: /
+  service: http://{{ include "quorum-node.fullname" . }}.{{ .Release.Namespace }}:{{ .Values.node.quorum.ws.port }}

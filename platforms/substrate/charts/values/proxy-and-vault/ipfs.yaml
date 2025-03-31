@@ -7,12 +7,12 @@
 global:
   serviceAccountName: vault-auth
   vault:
-    type: hashicorp
+    type: "hashicorp"
     network: substrate
-    address: http://vault.demo.com:8200
-    authPath: supplychain
+    address: "http://vault.demo.com:8200"
+    authPath: tierone
     secretEngine: secretsv2
-    secretPrefix: "data/supplychain" 
+    secretPrefix: "data/tierone"
     role: vault-role
 proxy:
   provider: ambassador 

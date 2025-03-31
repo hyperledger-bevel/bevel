@@ -45,7 +45,7 @@ apiVersion: getambassador.io/v3alpha1
 kind: Listener
 metadata:
   name: "{{ $fullname }}-listener"
-  namespace: {{ $.Values.namespace }}
+  namespace: {{ $.Release.Namespace }}
 spec:
   port: {{ $.Values.proxy.port }}
   protocol: TCP
@@ -59,8 +59,8 @@ apiVersion: getambassador.io/v3alpha1
 kind: TCPMapping
 metadata:
   name: "{{ $fullname }}-tcpmapping"
-  namespace: {{ $.Values.namespace }}
+  namespace: {{ $.Release.Namespace }}
 spec:
   port: {{ $.Values.proxy.port }}
-  service: "{{ $fullname }}-swarm.{{ $.Values.namespace }}:{{ $.Values.config.ipfsSwarmPort }}"
+  service: "{{ $fullname }}-swarm.{{ $.Release.Namespace }}:{{ $.Values.config.ipfsSwarmPort }}"
 {{- end }}
