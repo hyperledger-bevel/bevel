@@ -5,7 +5,7 @@
 ##############################################################################################
 
 # This playbook deploys a DLT network on existing Kubernetes clusters
-# The Kubernetes clusters should already be created and the infomation to connect to the
+# The Kubernetes clusters should already be created and the information to connect to the
 #  clusters be updated in the network.yaml file that is used as an input to this playbook
 ###########################################################################################
 # To Run this playbook from this directory, use the following command (network.yaml also in this directory)

@@ -6,7 +6,7 @@
 
 # This playbook manages user certificates for peers using existing Fabric-CA deployment on k8s
 # It creates new user identities or updates them
-# The Kubernetes clusters should already be created and the infomation to connect to the
+# The Kubernetes clusters should already be created and the information to connect to the
 # clusters be updated in the network-user-certificate.yaml file that is used as an input to this playbook
 ###########################################################################################
 # To Run this playbook from this directory, use the following command 

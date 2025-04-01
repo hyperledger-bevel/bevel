@@ -1,5 +1,5 @@
 # This playbook executes required tasks to install and instantiate external chaincode 
-# on existing Kubernetes clusters. The Kubernetes clusters should already be created and the infomation 
+# on existing Kubernetes clusters. The Kubernetes clusters should already be created and the information 
 # to connect to the clusters be updated in the network.yaml file that is used as an input to this playbook
 ###########################################################################################
 # To Run this playbook from this directory, use the following command (network.yaml also in this directory)
