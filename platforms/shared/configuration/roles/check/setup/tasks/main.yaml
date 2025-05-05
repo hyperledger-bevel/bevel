@@ -48,6 +48,12 @@
   register: get_gitcred
   when: check == "git_credentials"
 
+# Log information before checking crypto materials in vault
+- name: Log status before checking crypto materials
+  debug:
+    msg: "Checking for crypto materials at {{ vault_path }} in Vault. Retrying up to {{ network.env.retry_count }} times with 30s delay."
+  when: check == "crypto_materials"
+
 # This task waits until certs are stored in vault.
 - name: Wait for certs to be created.
   shell: |
@@ -60,6 +66,30 @@
   delay: 30
   until: vault_result.failed == False
   when: check == "crypto_materials"
+  register: vault_retry_result
+
+# Output debug message if vault operation fails after retries
+- name: Debug information for vault failure
+  debug:
+    msg: >-
+      Potential causes for Vault operation failure at path {{ vault_path }}:
+      1. Vault server unavailable or network connectivity issues
+      2. Invalid Vault token or expired token
+      3. Path doesn't exist or field doesn't exist at the specified path
+      4. Insufficient permissions to access the Vault path
+      5. Crypto materials may not have been generated yet
+      Verify Vault status with 'vault status' and check that the crypto generation process completed successfully.
+  when:
+    - check == "crypto_materials"
+    - vault_retry_result.failed is defined and vault_retry_result.failed
+  
+# Log success message when crypto materials are found
+- name: Log successful crypto materials check
+  debug:
+    msg: "Successfully found crypto materials at {{ vault_path }} in Vault."
+  when:
+    - check == "crypto_materials"
+    - vault_retry_result.failed is not defined or not vault_retry_result.failed
 
 # This task check if certs exists in vault.
 - name: check if certs exists in vault.

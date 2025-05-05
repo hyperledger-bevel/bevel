@@ -132,24 +132,101 @@ spec:
         - |-
           #!/bin/bash sh
  
+          # Set up logging function for better visibility
+          log_info() {
+              echo "[INFO] $(date '+%Y-%m-%d %H:%M:%S') - $1"
+          }
+          
+          log_warning() {
+              echo "[WARNING] $(date '+%Y-%m-%d %H:%M:%S') - $1"
+          }
+          
+          log_error() {
+              echo "[ERROR] $(date '+%Y-%m-%d %H:%M:%S') - $1"
+          }
+          
+          log_success() {
+              echo "[SUCCESS] $(date '+%Y-%m-%d %H:%M:%S') - $1"
+          }
+          
+          # Function to execute a command with retries
+          execute_with_retry() {
+              local cmd="$1"
+              local description="$2"
+              local max_attempts=3
+              local attempt=1
+              local result=1
+              
+              log_info "Executing: $description"
+              
+              while [ $attempt -le $max_attempts ]; do
+                  log_info "Attempt $attempt of $max_attempts: $description"
+                  eval $cmd
+                  result=$?
+                  
+                  if [ $result -eq 0 ]; then
+                      log_success "$description successful on attempt $attempt"
+                      return 0
+                  else
+                      log_warning "$description failed on attempt $attempt of $max_attempts. Exit code: $result"
+                      if [ $attempt -lt $max_attempts ]; then
+                          sleep_time=$((5 * $attempt))
+                          log_info "Retrying in $sleep_time seconds..."
+                          sleep $sleep_time
+                      fi
+                  fi
+                  attempt=$((attempt + 1))
+              done
+              
+              log_error "$description failed after $max_attempts attempts"
+              return $result
+          }
+
+          log_info "======== Starting chaincode approval process ========"
+          log_info "Channel: ${CHANNEL_NAME}"
+          log_info "Chaincode: ${CHAINCODE_NAME}"
+          log_info "Version: ${CHAINCODE_VERSION}"
+          log_info "Sequence: ${CHAINCODE_SEQUENCE}"
+          log_info "Peer: ${CORE_PEER_ID}"
+
           ## Checking approved chaincode
+          log_info "Checking if chaincode is already approved..."
           APPROVED=$(peer lifecycle chaincode queryapproved --channelID ${CHANNEL_NAME} --name ${CHAINCODE_NAME} -O json | \
             jq --arg SEQUENCE "${CHAINCODE_SEQUENCE}" --arg VERSION "$CHAINCODE_VERSION" \
             'select((.sequence|tostring)==$SEQUENCE and (.version|tostring)==$VERSION)')
 
           if [ -n "${APPROVED}" ]
           then
-            echo "chaincode ${CHAINCODE_NAME} with version ${CHAINCODE_VERSION} and sequence ${CHAINCODE_SEQUENCE} is approved in channel ${CHANNEL_NAME}, skipping... "
+            log_success "Chaincode ${CHAINCODE_NAME} with version ${CHAINCODE_VERSION} and sequence ${CHAINCODE_SEQUENCE} is already approved in channel ${CHANNEL_NAME}, skipping... "
             exit 0
           fi
 
+          log_info "Chaincode not yet approved. Proceeding with approval process..."
           echo $COMMIT_ARGUMENTS>COMMIT_ARGUMENTS.txt
           COMMIT_ARGUMENTS=$(< COMMIT_ARGUMENTS.txt)
           
-          echo "Extracting package id"
-          peer lifecycle chaincode queryinstalled > log.txt
-          PACKAGE_ID=$(cat log.txt | grep "${CHAINCODE_NAME}_${CHAINCODE_VERSION}" | sed -n "/${CC_NAME}_${CC_VERSION}/{s/^Package ID: //; s/, Label:.*$//; p;}")
-          echo "Package Id Extracted ${PACKAGE_ID}"
+          log_info "Extracting package ID for chaincode ${CHAINCODE_NAME} version ${CHAINCODE_VERSION}..."
+          execute_with_retry "peer lifecycle chaincode queryinstalled > log.txt" "Query installed chaincode"
+          
+          if [ $? -ne 0 ]; then
+            log_error "Failed to query installed chaincode. Potential causes:"
+            log_error "1. Network connectivity issues with the peer"
+            log_error "2. The peer may not be running"
+            log_error "3. Chaincode may not be installed yet"
+            log_error "Check peer logs and status for more details."
+            exit 1
+          fi
+          
+          PACKAGE_ID=$(cat log.txt | grep "${CHAINCODE_NAME}_${CHAINCODE_VERSION}" | sed -n "/${CHAINCODE_NAME}_${CHAINCODE_VERSION}/{s/^Package ID: //; s/, Label:.*$//; p;}")
+          
+          if [ -z "$PACKAGE_ID" ]; then
+            log_error "Failed to extract package ID for ${CHAINCODE_NAME}_${CHAINCODE_VERSION}"
+            log_error "Make sure the chaincode is installed correctly on the peer."
+            log_error "Queryinstalled output: $(cat log.txt)"
+            exit 1
+          fi
+          
+          log_info "Package ID extracted: ${PACKAGE_ID}"
 
           APPROVE_CMD="peer lifecycle chaincode approveformyorg -o ${ORDERER_URL} --tls ${CORE_PEER_TLS_ENABLED} --cafile ${ORDERER_CA} --channelID ${CHANNEL_NAME} --name ${CHAINCODE_NAME} --version ${CHAINCODE_VERSION} --package-id ${PACKAGE_ID} --sequence ${CHAINCODE_SEQUENCE}"
 
@@ -157,53 +234,78 @@ spec:
           then
             init_flag=" --init-required"
             APPROVE_CMD=${APPROVE_CMD}${init_flag}
+            log_info "Init required flag added to approve command"
           fi
 
-          echo "Entering if loop"
           if [ "${PDC_ENABLED}" = "true" ]
           then
+            log_info "PDC is enabled. Adding collections config..."
             pdc_config=" --collections-config /opt/pdc/collections_config.json"
             APPROVE_CMD=${APPROVE_CMD}${pdc_config}
-            echo "Approve command post collection config: " ${APPROVE_CMD}
+            log_info "Approve command with collection config: ${APPROVE_CMD}"
           elif [ -n "${COLLECTIONS_CONFIG}" ]
           then
-            echo "chaincode collection config path: ${COLLECTIONS_CONFIG}"
-            echo "Inside if for collection config"
+            log_info "Collection config path specified: ${COLLECTIONS_CONFIG}"
             ## Git repository clone for private data collection config
+            log_info "Cloning git repository for private data collection config..."
             mkdir -p /root/.ssh/
             ssh-keyscan {{ $.Values.chaincode.repository.hostname }} > /root/.ssh/known_hosts
             git_password=$(cat /opt/gopath/src/github.com/hyperledger/fabric/crypto/user_cred)
-            cd /tmp && git clone https://{{ $.Values.chaincode.repository.git_username }}:$git_password@{{ $.Values.chaincode.repository.url }} -b {{ $.Values.chaincode.repository.branch }} chaincode
+            
+            execute_with_retry "cd /tmp && git clone https://{{ $.Values.chaincode.repository.git_username }}:$git_password@{{ $.Values.chaincode.repository.url }} -b {{ $.Values.chaincode.repository.branch }} chaincode" "Clone git repository for collections config"
+            
+            if [ $? -ne 0 ]; then
+              log_error "Failed to clone git repository. Check credentials and repository URL."
+              exit 1
+            fi
+            
             mkdir -p $GOPATH/src/github.com/chaincode
             cp -R /tmp/chaincode/{{ $.Values.chaincode.repository.path }}/* $GOPATH/src/github.com/chaincode/
             #Config file path
             CONFIG_SRC_PATH="$GOPATH/src/github.com/chaincode/${CHAINCODE_NAME}/${COLLECTIONS_CONFIG}"
-            ## approve for myorg with private data collection config
-            echo "peer query approve with collection config"
-            collection_config=" --collections-config  ${CONFIG_SRC_PATH}"
+            
+            if [ ! -f "${CONFIG_SRC_PATH}" ]; then
+              log_error "Collections config file not found at ${CONFIG_SRC_PATH}"
+              log_error "Please verify the path and check if the file exists in the repository"
+              exit 1
+            fi
+            
+            log_info "Collections config file found at ${CONFIG_SRC_PATH}"
+            collection_config=" --collections-config ${CONFIG_SRC_PATH}"
             APPROVE_CMD=${APPROVE_CMD}${collection_config} 
-            echo "Approve command post collection config: " ${APPROVE_CMD}
+            log_info "Approve command with collection config: ${APPROVE_CMD}"
           fi
 
-          # echo "Endorsing policy:${ENDORSEMENT_POLICIES}"
           if [ -z ${ENDORSEMENT_POLICIES} ]
           then
-            eval ${APPROVE_CMD}
+            log_info "No endorsement policy specified, using default policy"
+            execute_with_retry "${APPROVE_CMD}" "Approve chaincode without endorsement policy"
           else
-            ## approve for myorg
-            echo "peer query approve with endorsement policies"
+            log_info "Using endorsement policy: ${ENDORSEMENT_POLICIES}"
             endorsement_policy=" --signature-policy ${ENDORSEMENT_POLICIES}"
             APPROVE_CMD=${APPROVE_CMD}${endorsement_policy}
-            eval ${APPROVE_CMD}  
+            log_info "Final approve command: ${APPROVE_CMD}"
+            execute_with_retry "${APPROVE_CMD}" "Approve chaincode with endorsement policy"  
           fi
+          
           if [ $? -eq 0 ]; then
-            echo "Final Approve command: " ${APPROVE_CMD}
-            echo "Chaincode approve was successful."
+            log_success "Chaincode approval successful! Details:"
+            log_success "Channel: ${CHANNEL_NAME}"
+            log_success "Chaincode: ${CHAINCODE_NAME}"
+            log_success "Version: ${CHAINCODE_VERSION}"
+            log_success "Sequence: ${CHAINCODE_SEQUENCE}"
           else
-            echo "Final Approve command: " ${APPROVE_CMD}
-            echo "Chaincode approve failed."
+            log_error "Chaincode approval failed after multiple attempts. Potential causes:"
+            log_error "1. Network connectivity issues with orderer or peers"
+            log_error "2. Invalid endorsement policy syntax"
+            log_error "3. Incorrect package ID or chaincode parameters"
+            log_error "4. Insufficient endorsements from other organizations"
+            log_error "5. Mismatched sequence number with other organizations"
+            log_error "Final approve command: ${APPROVE_CMD}"
             exit 1
           fi
+          
+          log_info "======== Chaincode approval process complete ========"
         env:
         - name: CORE_VM_ENDPOINT
           value: unix:///host/var/run/docker.sock

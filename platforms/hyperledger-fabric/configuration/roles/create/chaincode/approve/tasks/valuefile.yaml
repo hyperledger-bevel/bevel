@@ -9,6 +9,13 @@
 ##############################################################################################
 
 ---
+# Log message before waiting for chaincode to be installed
+- name: "Log waiting for chaincode {{ chaincode.name }} v{{ chaincode.version }} installation on {{ peer.name }}"
+  debug:
+    msg: "Waiting for chaincode {{ chaincode.name }} v{{ chaincode.version }} to be installed on {{ peer.name }}. This may take a few minutes."
+  when:
+    - skip_install_checking is not defined or skip_install_checking == false or skip_install_checking == 'false'
+
 # Check or Wait if install-chaincode is already run
 - name: "Waiting for chaincode to be installed on {{ peer.name }}"
   include_role:
@@ -20,6 +27,19 @@
     component_name: "{{ 'installchaincode' if chaincode is defined and ( chaincode.external_chaincode is undefined or chaincode.external_chaincode == false ) else 'instextcc' }}-{{ peer.name }}-{{ chaincode.name }}-{{ chaincode.version }}"
   when:
     - skip_install_checking is not defined or skip_install_checking == false or skip_install_checking == 'false'
+  register: chaincode_install_status
+
+# Log message if chaincode installation was successful or timed out
+- name: "Log chaincode installation status for {{ chaincode.name }} v{{ chaincode.version }} on {{ peer.name }}"
+  debug:
+    msg: "{{ 'Successfully verified chaincode installation for ' + chaincode.name + ' v' + chaincode.version + ' on peer ' + peer.name if chaincode_install_status.failed is not defined or not chaincode_install_status.failed else 'Chaincode installation verification timed out. This might be normal if the installation job is still running or has failed. Check the job logs with: kubectl logs -n ' + org.name|lower + '-net job/' + ('installchaincode' if chaincode is defined and ( chaincode.external_chaincode is undefined or chaincode.external_chaincode == false ) else 'instextcc') + '-' + peer.name + '-' + chaincode.name + '-' + chaincode.version }}"
+  when:
+    - skip_install_checking is not defined or skip_install_checking == false or skip_install_checking == 'false'
+
+# Log message before checking for approve chaincode job
+- name: "Log checking for approve-chaincode job for {{ chaincode.name }} v{{ chaincode.version }} on {{ peer.name }}"
+  debug:
+    msg: "Checking if chaincode {{ chaincode.name }} v{{ chaincode.version }} has already been approved on peer {{ peer.name }}."
 
 # Check if approve-chaincode is already run
 - name: 'Check for approve-chaincode job'
@@ -30,6 +50,12 @@
     namespace: "{{ org.name |lower }}-net"
     kubernetes: "{{ org.k8s }}"
     component_name: "approvecc-{{ peer.name }}-{{ chaincode.name }}-{{ chaincode.version }}-{{ chaincode.sequence | default('1') }}"
+  register: approve_check_status
+
+# Log message with approval check results
+- name: "Log approval check status for {{ chaincode.name }} v{{ chaincode.version }} on {{ peer.name }}"
+  debug:
+    msg: "{{ 'Approval job for chaincode ' + chaincode.name + ' v' + chaincode.version + ' was found on peer ' + peer.name if approve_check_status.result.resources|length > 0 else 'No existing approval job found for chaincode ' + chaincode.name + ' v' + chaincode.version + ' on peer ' + peer.name + '. Will create approval job.' }}"
 
 # Set Variable approve_chaincode
 - name: "Set Variable approve_chaincode"
@@ -63,6 +89,16 @@
     - chaincode.pdc.enabled
     - chaincode.pdc.collections_config is defined
 
+# Log debug message when a PDC collection config file doesn't exist
+- name: "Debug PDC collection config file not found"
+  debug:
+    msg: "PDC collection config file not found at {{ chaincode.pdc.collections_config }}. Please verify the path and file contents."
+  when:
+    - chaincode.pdc is defined
+    - chaincode.pdc.enabled
+    - chaincode.pdc.collections_config is defined
+    - check_file.stat.exists == false
+
 # Create value file for chaincode approve
 - name: "Create value file for chaincode approve"
   include_role:
@@ -84,6 +120,20 @@
     pdc_config_content: "{{ lookup('file', '{{ chaincode.pdc.collections_config }}')}}"
   when:
     - chaincode is defined and approve_chaincode.resources|length == 0
+
+# Log message when creating approve chaincode job
+- name: "Log creating approval job for {{ chaincode.name }} v{{ chaincode.version }}"
+  debug:
+    msg: "Creating approval job for chaincode {{ chaincode.name }} v{{ chaincode.version }} with sequence {{ chaincode.sequence | default('1') }} for peer {{ peer.name }} in organization {{ org.name | lower }}."
+  when:
+    - chaincode is defined and approve_chaincode.resources|length == 0
+
+# Log message when skipping creation of approve chaincode job
+- name: "Log skipping approval job for {{ chaincode.name }} v{{ chaincode.version }}"
+  debug:
+    msg: "Skipping creation of approve job for chaincode {{ chaincode.name }} v{{ chaincode.version }} as it has already been approved for peer {{ peer.name }} in organization {{ org.name | lower }}."
+  when:
+    - chaincode is defined and approve_chaincode.resources|length > 0
 
 # Git Push : Push the above generated files to git directory 
 - name: Git Push

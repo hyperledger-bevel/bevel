@@ -21,6 +21,14 @@
     - component_type == "Namespace" or component_type == "StorageClass" or component_type == "ClusterRoleBinding"
     - type == "no_retry"
 
+# Log the status before retry
+- name: Log status before retrying {{ component_type }} {{ component_name }}
+  debug:
+    msg: "Checking for {{ component_type }} {{ component_name }}. Retrying up to {{ network.env.retry_count }} times with 35s delay."
+  when:
+    - component_type == "Namespace" or component_type == "ClusterRoleBinding" or component_type == "StorageClass"
+    - type is undefined or type == "retry"
+
 # Check if a component is created with retry
 - name: Wait for {{ component_type }} {{ component_name }}
   k8s_info:
@@ -35,6 +43,22 @@
   when: 
     - component_type == "Namespace" or component_type == "ClusterRoleBinding" or component_type == "StorageClass"
     - type is undefined or type == "retry"
+  register: retry_result
+
+# Output debug message if component creation fails after retries
+- name: Debug information for {{ component_type }} {{ component_name }} failure
+  debug:
+    msg: >-
+      Potential causes for {{ component_type }} {{ component_name }} creation failure:
+      1. Kubernetes cluster connectivity issues
+      2. Insufficient permissions
+      3. Resource conflicts or naming conflicts
+      4. Invalid configuration in network.yaml
+      Check the Kubernetes events and logs for more details.
+  when:
+    - component_type == "Namespace" or component_type == "ClusterRoleBinding" or component_type == "StorageClass"
+    - type is undefined or type == "retry"
+    - retry_result.failed is defined and retry_result.failed
 
 # Task to check if ServiceAccount is created
 # This task will try for a maximum number of iterations defined in env.retry_count of network.yaml with an interval of
@@ -48,6 +72,12 @@
     context: "{{ kubernetes.context }}"
   register: serviceAccount_data
   when: (component_type == "ServiceAccount" and type == "no_retry")
+
+# Log the status before retry
+- name: Log status before retrying {{ component_type }} {{ component_name }}
+  debug:
+    msg: "Checking for {{ component_type }} {{ component_name }} in namespace {{ component_ns }}. Retrying up to {{ network.env.retry_count }} times with 35s delay."
+  when: (component_type == "ServiceAccount" and (type is undefined or type == 'retry'))
 
 # Task to check if ServiceAccount is created
 # This task will try for a maximum number of iterations defined in env.retry_count of network.yaml with an interval of
@@ -64,3 +94,18 @@
   delay: 35
   until: component_data.resources|length > 0
   when: (component_type == "ServiceAccount" and (type is undefined or type == 'retry'))
+  register: sa_retry_result
+
+# Output debug message if ServiceAccount creation fails after retries
+- name: Debug information for {{ component_type }} {{ component_name }} failure
+  debug:
+    msg: >-
+      Potential causes for {{ component_type }} {{ component_name }} in namespace {{ component_ns }} creation failure:
+      1. Namespace may not exist or is still being created
+      2. Insufficient permissions in the namespace
+      3. ServiceAccount naming conflicts
+      4. Invalid configuration in network.yaml
+      Check the Kubernetes events and logs for more details.
+  when:
+    - component_type == "ServiceAccount" and (type is undefined or type == 'retry')
+    - sa_retry_result.failed is defined and sa_retry_result.failed
