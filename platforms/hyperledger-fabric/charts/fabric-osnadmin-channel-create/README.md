@@ -50,12 +50,12 @@ The command removes all the Kubernetes components associated with the chart and 
 ## Parameters
 
 ### Global parameters
-These parameters are refered to as same in each parent or child chart
+These parameters are referred to as same in each parent or child chart
 | Name   | Description  | Default Value |
 |--------|---------|-------------|
 |`global.version` | Fabric Version. This chart is only used for `2.5.x` | `2.5.4` |
 |`global.serviceAccountName` | The serviceaccount name that will be created for Vault Auth and k8S Secret management| `vault-auth` |
-| `global.cluster.provider` | Kubernetes cluster provider like AWS EKS or minikube. Currently ony `aws`, `azure` and `minikube` are tested | `aws` |
+| `global.cluster.provider` | Kubernetes cluster provider like AWS EKS or minikube. Currently only `aws`, `azure` and `minikube` are tested | `aws` |
 | `global.cluster.cloudNativeServices` | only `false` is implemented, `true` to use Cloud Native Services (SecretsManager and IAM for AWS; KeyVault & Managed Identities for Azure) is for future  | `false`  |
 | `global.vault.type`  | Type of Vault to support other providers. Currently, only `hashicorp` and `kubernetes` is supported. | `hashicorp`    |
 | `global.vault.role`  | Role used for authentication with Vault | `vault-role`    |
@@ -80,7 +80,7 @@ These parameters are refered to as same in each parent or child chart
 |--------|---------|-------------|
 | `orderers` | List of Orderer nodes in the network and their OSN Admin addresses. This list presents two fields `name` and `adminAddress`  | `- name: orderer1`<br/>`adminAddress: orderer1.supplychain-net:7055` <br/>`- name: orderer2`<br/>`adminAddress: orderer2.supplychain-net:7055` <br/> `- name: orderer3`<br/>`adminAddress: orderer3.supplychain-net:7055`  |
 | `orderer.addOrderer` | Flag to add new Orderer node to the network | `false` |
-| `orderer.name` | Name of the new Orderer node to be addded | `neworderer` |
+| `orderer.name` | Name of the new Orderer node to be added | `neworderer` |
 | `orderer.localMspId` | New Orderer MSP ID   | `newordererMSP` |
 | `orderer.ordererAddress` | New Orderer Internal or External Address with port for Peer to connect  | `neworderer.neworg-net:7050` |
 

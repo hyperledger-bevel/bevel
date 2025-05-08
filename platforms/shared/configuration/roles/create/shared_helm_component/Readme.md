@@ -12,7 +12,7 @@ This role consists of the following tasks
 ### Tasks
 (Variables with * are fetched from the playbook which is calling this role)
 #### 1. "Ensures {{ values_dir }}/{{ name }} dir exists"
-This task ensures that the value directory is present on the ansible container which is refered by `values_dir` variable which is defined at `/platforms/quorum/playbooks/roles/helm_component/vars/main.yaml`
+This task ensures that the value directory is present on the ansible container which is referred by `values_dir` variable which is defined at `/platforms/quorum/playbooks/roles/helm_component/vars/main.yaml`
 ##### Input Variables
 
     *name: Type of the Helm Release file 

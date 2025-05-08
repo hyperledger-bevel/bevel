@@ -45,7 +45,7 @@ The command removes all the Kubernetes components associated with the chart and 
 
 ### Global parameters
 
-These parameters are refered to as same in each parent or child chart
+These parameters are referred to as same in each parent or child chart
 | Name   | Description  | Default Value |
 |--------|---------|-------------|
 | `global.cluster.provider` | Kubernetes cluster provider. choose from: minikube, aws, azure, gcp | `aws`  |

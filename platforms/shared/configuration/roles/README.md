@@ -15,7 +15,7 @@ Please follow the readme in [**configuration**](../README.md) directory for help
 - This role is used to do a git-commit whenever the configuration has to check-in the generated helm-value files. The role takes the git parameters as input.
 
 ### helm_lint
-- This role runs a ``helm lint`` to check for the the syntax validity of the generated helm values against the helm charts. This role should be called before doing a *git_push* for a helm value file.
+- This role runs a ``helm lint`` to check for the syntax validity of the generated helm values against the helm charts. This role should be called before doing a *git_push* for a helm value file.
 
 ### setup ###
 - This folder groups all the **setup** roles

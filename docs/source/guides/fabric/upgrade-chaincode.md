@@ -14,7 +14,7 @@
 
 <a name = "pre_req"></a>
 ## Pre-requisites
-Hyperledger Fabric network deployed, network.yaml configuration file already set and chaincode is installed and instantiated or packaged, approved and commited in case of Fabric version 2.2.
+Hyperledger Fabric network deployed, network.yaml configuration file already set and chaincode is installed and instantiated or packaged, approved and committed in case of Fabric version 2.2.
 
 <a name = "create_config_file"></a>
 ## Modifying configuration file

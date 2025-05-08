@@ -35,4 +35,4 @@ Steps:
         ]}
     ```
 
-3. Use the the cloud provider in your network configuration file `cloud_provider` field under organization section.
+3. Use the cloud provider in your network configuration file `cloud_provider` field under organization section.

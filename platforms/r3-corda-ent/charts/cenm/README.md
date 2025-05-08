@@ -50,7 +50,7 @@ The command removes all the Kubernetes components associated with the chart and 
 ## Parameters
 
 ### Global parameters
-These parameters are refered to as same in each parent or child chart
+These parameters are referred to as same in each parent or child chart
 | Name   | Description  | Default Value |
 |--------|---------|-------------|
 |`global.serviceAccountName` | The serviceaccount name that will be used for Vault Auth management| `vault-auth` |

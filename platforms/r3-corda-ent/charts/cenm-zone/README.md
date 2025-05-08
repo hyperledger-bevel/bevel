@@ -22,7 +22,7 @@ helm install zone bevel/cenm-zone
 If Hashicorp Vault is used, then
 - HashiCorp Vault Server 1.13.1+
 
-> **Important**: Ensure the `enterprise-init` chart has been installed before installing this. Also check the dependent charts. Installing this chart seperately is not required as it is a dependent chart for cenm, and is installed with cenm chart.
+> **Important**: Ensure the `enterprise-init` chart has been installed before installing this. Also check the dependent charts. Installing this chart separately is not required as it is a dependent chart for cenm, and is installed with cenm chart.
 
 ## Installing the Chart
 
@@ -50,7 +50,7 @@ The command removes all the Kubernetes components associated with the chart and 
 ## Parameters
 
 ### Global parameters
-These parameters are refered to as same in each parent or child chart
+These parameters are referred to as same in each parent or child chart
 | Name   | Description  | Default Value |
 |--------|---------|-------------|
 |`global.serviceAccountName` | The serviceaccount name that will be used for Vault Auth management| `vault-auth` |

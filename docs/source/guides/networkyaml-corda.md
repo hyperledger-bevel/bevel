@@ -58,7 +58,7 @@ The fields under `env` section are
 | type       | Environment type. Can be like dev/test/prod.|
 | proxy      | Choice of the Cluster Ingress controller. Currently supports `ambassador` only as `haproxy` has not been implemented for Corda |
 | ambassadorPorts   | Any additional Ambassador ports can be given here. This is only valid if `proxy: ambassador`     |
-| loadBalancerSourceRanges | (Optional) Restrict inbound access to a single or list of IP adresses for the public Ambassador ports to enhance network security. This is only valid if `proxy: ambassador`.  |
+| loadBalancerSourceRanges | (Optional) Restrict inbound access to a single or list of IP addresses for the public Ambassador ports to enhance network security. This is only valid if `proxy: ambassador`.  |
 | retry_count       | Retry count for the checks. Use a large number if your kubernetes cluster is slow. |
 | external_dns       | If the cluster has the [external DNS service](../tutorials/dns-settings.md#external-dns), this has to be set `enabled` so that the hosted zone is automatically updated. |
 

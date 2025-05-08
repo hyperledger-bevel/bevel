@@ -51,7 +51,7 @@ The command removes all the Kubernetes components associated with the chart and 
 
 ### Global
 
-These parameters are refered to as same in each parent or child chart
+These parameters are referred to as same in each parent or child chart
 | Name   | Description  | Default Value |
 |--------|---------|-------------|
 |`global.version` | Fabric Version. | `2.5.4` |

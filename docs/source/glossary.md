@@ -7,7 +7,7 @@ Glossary
 ========
 ## General
 
-This sections lists the general terms that are used in Hyperledger Bevel.
+This section lists the general terms that are used in Hyperledger Bevel.
 
 ### Ansible
 Ansible is an open-source software provisioning, configuration management, and application-deployment tool. It runs on many Unix-like systems, and can configure both Unix-like systems as well as Microsoft Windows. It includes its own declarative language to describe system configuration.
@@ -221,7 +221,7 @@ The first Identity Record written to the Ledger that describes a new Ledger Enti
 A set of Identity Records, Claims, and Proofs that describes a Ledger Entity. To protect privacy: a) an Identity Owner may have more than one Ledger Identity, and b) only the Identity Owner and the Relying Party(s) with whom an Identity is shared knows the specific set of Identity Records, Claims, and Proofs that comprise that particular Identity.
 
 ### Identity Owner
-A Ledger Entity who can be held legally accountable. An Identity Owner must be either an Individual or an Organization. Identity owners can also be distinguished as Independent Identity Owner and Dependent Identity Owner based on the writer of the Genesis record, for an Independent Identity Owner the Genesis Record must be written by a Trust Anchor and in case of a Dependent Identity Owner the the Genesis Record must be written by a Guardian.
+A Ledger Entity who can be held legally accountable. An Identity Owner must be either an Individual or an Organization. Identity owners can also be distinguished as Independent Identity Owner and Dependent Identity Owner based on the writer of the Genesis record, for an Independent Identity Owner the Genesis Record must be written by a Trust Anchor and in case of a Dependent Identity Owner the Genesis Record must be written by a Guardian.
 
 ### Identity Record
 A transaction on the Ledger that describes a Ledger Entity. Every Identity Record is associated with exactly one DID. The registration of a DID is itself an Identity Record. Identity Records may include Public Keys, Service Endpoints, Claim Definitions, Public Claims, and Proofs. Identity Records are Public Data.
