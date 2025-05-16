@@ -18,14 +18,14 @@ You can contibute to Hyperledger Bevel, as a user or/and as a developer.
 
 Consider picking up a [“help-wanted”](https://github.com/hyperledger/bevel/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22) or ["good-first-issue"](https://github.com/hyperledger/bevel/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) task  
 
-If you can commit to full-time/part-time development, then please contact us on our [Rocketchat channel](https://chat.hyperledger.org/channel/bevel ) to work through logistics!
+If you can commit to full-time/part-time development, then please contact us on our [Discord server](https://chat.hyperledger.org) to work through logistics!
 
 Please visit the
-[Developer Guide](https://hyperledger-bevel.readthedocs.io/en/latest/developerguide/) in the docs to learn how to make contributions to this exciting project.
+[Developer Pre-requisites](https://hyperledger-bevel.readthedocs.io/en/latest/tutorials/dev-prereq/) followed by [How to Contribute](https://hyperledger-bevel.readthedocs.io/en/latest/contributing/how-to-contribute/) in the docs to learn how to make contributions to this exciting project.
 
  #### Pull Request Process :
 
-For source code integrity , Hyperledger Bevel GitHub pull requests are accepted from forked repositories only. There are also quality standards identified and documented here that will be enhanced over time.
+For source code integrity, Hyperledger Bevel GitHub pull requests are accepted from forked repositories only. There are also quality standards identified and documented here that will be enhanced over time.
 
 1. Fork Hyperledger Bevel via Github UI.
 2. Clone the fork to your local machine.
@@ -44,10 +44,10 @@ For source code integrity , Hyperledger Bevel GitHub pull requests are accepted 
           - `[quorum]` for Quorum changes
           - `[shared]` for all common and other changes
 5. Push your changes to your feature branch.
-6. Initiate a pull request from your fork to the base repository ( `develop` branch , unless it is a critical bug, in that case initiate to the `main` branch)
+6. Initiate a pull request from your fork to the base repository ( `develop` branch, unless it is a critical bug, in that case initiate to the `main` branch)
 7. Await DCO & linting quality checks and GitActions to complete, as well as any feedback from reviewers.
 8. Work on the feedbacks to revise the PR if there are any comments
-9. If not, the PR gets approved , delete feature branch post the merge
+9. If not, the PR gets approved, delete feature branch post the merge
 
 ## Create local branch
 
@@ -139,7 +139,7 @@ The current directory structure is described as the following:
 
 
 ---
-**NOTE:** If you are a regular contributor , please make sure to take the latest pull from the develop branch everytime before making any pull request , main branch in case of a critical defect / bug .
+**NOTE:** If you are a regular contributor, please make sure to take the latest pull from the develop branch everytime before making any pull request, main branch in case of a critical defect / bug.
 
 ---
 
