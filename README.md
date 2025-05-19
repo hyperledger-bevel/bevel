@@ -45,7 +45,7 @@ Hyperledger Bevel currently supports R3 Corda OS and Enterprise, Hyperledger Fab
 
 ## Getting Started
 
-To get started with the framework quickly, follow our [Getting Started guidelines](https://hyperledger-bevel.readthedocs.io/en/latest/gettingstarted.html).
+To get started with the framework quickly, follow our [Getting Started guidelines](https://hyperledger-bevel.readthedocs.io/en/v0.15.1/getting-started/run-bevel/).
 
 Detailed operator and developer documentation is available on [our ReadTheDocs site](https://hyperledger-bevel.readthedocs.io/en/latest/index.html).
 
