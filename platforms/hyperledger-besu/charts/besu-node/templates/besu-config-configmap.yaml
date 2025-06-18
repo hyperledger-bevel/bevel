@@ -25,8 +25,10 @@ data:
     genesis-file={{ .Values.node.besu.genesisFilePath | quote }}
     logging={{ .Values.node.besu.logging | quote }}
     node-private-key-file={{.Values.node.besu.privateKeyPath | quote }}
+    cache-last-blocks={{ .Values.node.besu.cacheLastBlocks }}
 
     # Transaction Pool
+    tx-pool={{ .Values.node.besu.txPool.type | quote }}
     tx-pool-layer-max-capacity={{ .Values.node.besu.txPool.maxCapacity }}
 
     {{ if  .Values.node.besu.p2p.enabled -}}

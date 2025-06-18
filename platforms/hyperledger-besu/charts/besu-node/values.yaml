@@ -61,6 +61,7 @@ node:
 
   besu:
     identity: "supplychain"
+    cacheLastBlocks: 0
     envBesuOpts: ""
     resources:
       cpuLimit: 0.25
@@ -104,6 +105,7 @@ node:
       port: 8547
       corsOrigins: '["all"]'
     txPool:
+      type: ""
       maxCapacity: 12
     http:
       allowlist: '["*"]'
