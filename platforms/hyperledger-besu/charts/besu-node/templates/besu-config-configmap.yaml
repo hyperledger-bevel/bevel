@@ -26,10 +26,17 @@ data:
     logging={{ .Values.node.besu.logging | quote }}
     node-private-key-file={{.Values.node.besu.privateKeyPath | quote }}
     cache-last-blocks={{ .Values.node.besu.cacheLastBlocks }}
+    sync-min-peers{{ .Values.node.besu.syncMinPeers }}
 
     # Transaction Pool
     tx-pool={{ .Values.node.besu.txPool.type | quote }}
-    tx-pool-layer-max-capacity={{ .Values.node.besu.txPool.maxCapacity }}
+    {{ if eq .Values.node.besu.txPool.type "sequenced" -}}
+    tx-pool-max-size={{ .Values.node.besu.txPool.maxCapacity | quote }}
+    tx-pool-limit-by-account-percentage={{ .Values.node.besu.txPool.accountPercentage  }}
+    {{ else }}
+    tx-pool-layer-max-capacity={{ .Values.node.besu.txPool.maxCapacity | quote }}
+    tx-pool-max-future-by-sender={{ .Values.node.besu.txPool.accountPercentage | quote }}
+    {{ end }}
 
     {{ if  .Values.node.besu.p2p.enabled -}}
     # P2P network
