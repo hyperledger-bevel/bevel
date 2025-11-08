@@ -1,0 +1,63 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: ca
+  namespace: supplychain-net
+  annotations:
+    fluxcd.io/automated: "false"
+spec:
+  interval: 1m
+  releaseName: ca
+  chart:
+    spec:
+      interval: 1m
+      sourceRef:
+        kind: GitRepository
+        name: flux-staging
+        namespace: flux-staging
+      chart: platforms/hyperledger-fabric/charts/fabric-ca-server   
+  values:
+    global:
+      serviceAccountName: vault-auth
+      cluster:
+        provider: aws
+        cloudNativeServices: false
+        kubernetesUrl: https://85CE266964E8B1DB527EB8913F2615B3.gr7.ap-southeast-1.eks.amazonaws.com
+      vault:
+        type: hashicorp
+        network: fabric
+        address: http://vault.vault.svc.cluster.local:8200
+        authPath: stagingsupplychain
+        secretEngine: secretsv2
+        secretPrefix: "data/stagingsupplychain"
+        role: vault-role
+        tls: false
+      proxy:
+        provider: haproxy
+        externalUrlSuffix: org1proxy.blockchaincloudpoc.com
+
+    storage:
+      size: 512Mi
+      reclaimPolicy: "Delete"
+      volumeBindingMode: Immediate
+      allowedTopologies:
+        enabled: false
+
+    image:
+      alpineUtils: ghcr.io/henjimantaring/bevel-alpine:latest
+      ca: ghcr.io/henjimantaring/bevel-fabric-ca:latest
+      pullSecret: regcred
+
+    server:
+      removeCertsOnDelete: true
+      tlsStatus: true
+      adminUsername: supplychain-admin
+      adminPassword: supplychain-adminpw
+      subject: "/C=GB/ST=London/L=London/O=Orderer"
+      clusterIpPort: 7054
+
+    labels:
+      service:
+        - example1: example2
+      pvc:
+      deployment:
