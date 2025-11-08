@@ -15,20 +15,25 @@
     msg: "Checking for job {{ component_name }} in namespace {{ namespace }}. Retrying up to {{ network.env.retry_count }} times with 30s delay."
   when: component_type == "Job"
 
-- name: "Wait for job {{ component_name }} to complete in {{ namespace }}"
+- name: Wait for job {{ component_name }} to complete in {{ namespace }}
   k8s_info:
-    kind: "Job"
+    kind: Job
     namespace: "{{ namespace }}"
     kubeconfig: "{{ kubernetes.config_file }}"
     context: "{{ kubernetes.context }}"
     label_selectors:
       - "app = {{ component_name }}"
-  register: component_data
+  register: job_result
   retries: "{{ network.env.retry_count }}"
   delay: 30
-  until: component_data.resources|length > 0 and ((component_data.resources[0].status.phase is defined and component_data.resources[0].status.phase == "Succeeded") or (component_data.resources[0].status.succeeded is defined and component_data.resources[0].status.succeeded == 1))
+  until: >
+    job_result.resources | length > 0 and
+    (
+      (job_result.resources[0].status.phase is defined and job_result.resources[0].status.phase == "Succeeded")
+      or
+      (job_result.resources[0].status.succeeded is defined and job_result.resources[0].status.succeeded | int >= 1)
+    )
   when: component_type == "Job"
-  register: job_retry_result
 
 # Output debug message if Job creation fails after retries
 - name: Debug information for job {{ component_name }} failure
@@ -43,7 +48,12 @@
       Run 'kubectl describe job -n {{ namespace }} -l app={{ component_name }}' for more details.
   when:
     - component_type == "Job"
-    - job_retry_result.failed is defined and job_retry_result.failed
+    - job_result is defined
+    - (job_result.resources | length == 0) or
+      (
+        (job_result.resources[0].status.phase is defined and job_result.resources[0].status.phase != "Succeeded") and
+        (job_result.resources[0].status.succeeded is not defined or job_result.resources[0].status.succeeded | int < 1)
+      )
 
 # one time job check and registers the result variable
 - name: "Check for job {{ component_name }} in {{ namespace }}"
@@ -66,21 +76,20 @@
 # Task to check if Pod is deployed and running
 # This task will try for a maximum of 10 times with an interval of
 # 60 seconds between each try
-- name: "Wait for pod {{ component_name }} to start in {{ namespace }}"
+- name: Wait for pod {{ component_name }} to start in {{ namespace }}
   k8s_info:
-    kind: "Pod"
+    kind: Pod
     namespace: "{{ namespace }}"
     kubeconfig: "{{ kubeconfig | default(kubernetes.config_file) }}"
     context: "{{ context | default(kubernetes.context) }}"
     label_selectors: "{{ label_selectors }}"
     field_selectors:
       - status.phase=Running
-  register: component_data
+  register: pod_result
   retries: "{{ network.env.retry_count }}"
   delay: "{{ delay | default(30) }}"
-  until: component_data.resources|length > 0
+  until: pod_result.resources | length > 0
   when: component_type == "Pod"
-  register: pod_retry_result
 
 # Output debug message if Pod creation fails after retries
 - name: Debug information for pod {{ component_name }} failure
@@ -95,7 +104,8 @@
       Run 'kubectl describe pod -n {{ namespace }} -l {{ label_selectors | join(",") }}' for detailed events.
   when:
     - component_type == "Pod"
-    - pod_retry_result.failed is defined and pod_retry_result.failed
+    - pod_result is defined
+    - pod_result.resources | length == 0
   
 # Print a warning message if job is still running/pending after retries but not failed
 - name: Status update for job {{ component_name }}
