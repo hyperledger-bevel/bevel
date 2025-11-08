@@ -44,9 +44,9 @@ spec:
         enabled: false
 
     image:
-      alpineUtils: ghcr.io/henjimantaring/bevel-alpine:latest
-      ca: ghcr.io/henjimantaring/bevel-fabric-ca:latest
-      pullSecret: regcred
+      alpineUtils: ghcr.io/hyperledger/bevel-alpine:latest
+      ca: ghcr.io/hyperledger/bevel-fabric-ca:latest
+      pullSecret: ""
 
     server:
       removeCertsOnDelete: true
