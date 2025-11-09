@@ -53,7 +53,7 @@ spec:
       tlsStatus: true
       adminUsername: store-admin
       adminPassword: store-adminpw
-      subject: "''"'"'/C=US/ST=New York/L=New York/O=Store'"'"''"
+      subject: "/C=US/ST=New York/L=New York/O=Store"
       clusterIpPort: 7054
 
     labels:
