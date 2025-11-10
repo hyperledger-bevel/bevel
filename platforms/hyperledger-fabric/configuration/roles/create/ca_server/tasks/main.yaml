@@ -32,7 +32,7 @@
     git_url: "{{ gitops.git_url }}"
     git_branch: "{{ gitops.branch }}"
     charts_dir: "{{ gitops.chart_source }}"
-    subject: "{{ ca.subject | quote }}"
+    subject: "{{ ca.subject }}"
     external_url_suffix: "{{ org.external_url_suffix }}"
     kubernetes_url: "{{ kubernetes_server_url.stdout }}"
 
