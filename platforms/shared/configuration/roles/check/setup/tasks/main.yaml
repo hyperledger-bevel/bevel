@@ -55,18 +55,16 @@
   when: check == "crypto_materials"
 
 # This task waits until certs are stored in vault.
-- name: Wait for certs to be created.
-  shell: |
-    vault kv get -field={{ vault_field }} {{ vault_path }}
+- name: Wait for certs to be created
+  shell: vault kv get -field={{ vault_field }} {{ vault_path }}
   environment:
     VAULT_ADDR: "{{ vault.url }}"
     VAULT_TOKEN: "{{ vault.root_token }}"
   register: vault_result
-  retries: "{{ network.env.retry_count}}"
+  retries: "{{ network.env.retry_count }}"
   delay: 30
-  until: vault_result.failed == False
+  until: vault_result.rc == 0    # or: vault_result is succeeded
   when: check == "crypto_materials"
-  register: vault_retry_result
 
 # Output debug message if vault operation fails after retries
 - name: Debug information for vault failure
@@ -81,7 +79,7 @@
       Verify Vault status with 'vault status' and check that the crypto generation process completed successfully.
   when:
     - check == "crypto_materials"
-    - vault_retry_result.failed is defined and vault_retry_result.failed
+    - vault_result is failed
   
 # Log success message when crypto materials are found
 - name: Log successful crypto materials check
@@ -89,7 +87,7 @@
     msg: "Successfully found crypto materials at {{ vault_path }} in Vault."
   when:
     - check == "crypto_materials"
-    - vault_retry_result.failed is not defined or not vault_retry_result.failed
+    - vault_result is succeeded
 
 # This task check if certs exists in vault.
 - name: check if certs exists in vault.
