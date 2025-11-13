@@ -58,7 +58,7 @@
 - name: Wait for certs to be created
   shell: vault kv get -field={{ vault_field }} {{ vault_path }}
   environment:
-    VAULT_ADDR: "{{ vault.url }}"
+    VAULT_ADDR: "http://host.docker.internal:8200"
     VAULT_TOKEN: "{{ vault.root_token }}"
   register: vault_result
   retries: "{{ network.env.retry_count }}"
