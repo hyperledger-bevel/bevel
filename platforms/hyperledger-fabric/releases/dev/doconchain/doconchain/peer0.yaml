@@ -37,7 +37,7 @@ spec:
         externalUrlSuffix: org1proxy.hlf.doconchain.com
 
     storage:
-      enabled: False
+      enabled: True
       peer: 512Mi
       couchdb: 512Mi
       reclaimPolicy: "Delete" 
