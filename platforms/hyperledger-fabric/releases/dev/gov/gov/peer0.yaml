@@ -60,7 +60,7 @@ spec:
         - {'user': None, 'identity': 'user1', 'attributes': [{'key': 'hf.Revoker', 'value': 'true'}]}
 
       settings:
-        createConfigMaps: True
+        createConfigMaps: False
         refreshCertValue: false
         addPeerValue: false
         removeCertsOnDelete: true
