@@ -113,6 +113,8 @@
     msg: "Job {{ component_name }} in namespace {{ namespace }} is still running or pending. Consider increasing retry_count or checking for issues in the job configuration."
   when:
     - component_type == "Job"
-    - job_retry_result.failed is not defined or not job_retry_result.failed
-    - component_data.resources|length > 0 
-    - (component_data.resources[0].status.phase is not defined or component_data.resources[0].status.phase != "Succeeded") and (component_data.resources[0].status.succeeded is not defined or component_data.resources[0].status.succeeded != 1)
+    - job_retry_result is not defined or not job_retry_result.failed
+    - component_data is defined
+    - (component_data.resources | default([]) | length) > 0
+    - (component_data.resources[0].status.phase is not defined or component_data.resources[0].status.phase != "Succeeded") and
+      (component_data.resources[0].status.succeeded is not defined or component_data.resources[0].status.succeeded | int != 1)
