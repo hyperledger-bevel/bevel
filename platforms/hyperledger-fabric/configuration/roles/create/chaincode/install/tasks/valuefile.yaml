@@ -23,7 +23,7 @@
   shell: |
     vault kv put {{ vault.secret_path | default('secretsv2') }}/{{ org.name | lower }}/credentials/{{ namespace }}/git git_password="{{ chaincode.repository.password }}"
   environment:
-    VAULT_ADDR: "{{ vault.url }}"
+    VAULT_ADDR: "http://host.docker.internal:8200"
     VAULT_TOKEN: "{{ vault.root_token }}"
   when: install_chaincode.resources|length == 0
 

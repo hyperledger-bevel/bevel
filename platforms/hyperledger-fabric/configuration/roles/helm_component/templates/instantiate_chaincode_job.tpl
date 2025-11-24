@@ -20,8 +20,8 @@ spec:
     metadata:
       namespace: {{ namespace }}
       images:
-        fabricTools: {{ docker_url }}/{{ charts.fabric_tools_image }}
-        alpineUtils: {{ docker_url }}/bevel-alpine:{{ charts.bevel_alpine_version }}
+        fabricTools: {{ docker_url }}/{{ fabric_tools_image }}
+        alpineUtils: {{ docker_url }}/bevel-alpine:{{ bevel_alpine_version }}
     peer:
       name: {{ peer_name }}
       address: {{ peer_address }}
