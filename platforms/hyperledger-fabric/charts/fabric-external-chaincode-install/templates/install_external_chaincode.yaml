@@ -72,7 +72,7 @@ spec:
           value: "{{ $.Values.chaincode.tls_disabled }}"
         - name: VAULT_TYPE
           value: "{{ $.Values.vault.type }}"
-        command: ["sh", "-c"]
+        command: ["sh", "-c", "-xv"]
         args:
         - |-
           #!/usr/bin/env sh
@@ -156,7 +156,7 @@ spec:
           value: /chaincodepackage
         - name: VAULT_TYPE
           value: "{{ $.Values.vault.type }}"
-        command: ["sh", "-c"]
+        command: ["sh", "-c", "-xv"]
         args:
         - |-
           #!/usr/bin/env sh
@@ -189,7 +189,7 @@ spec:
         imagePullPolicy: Always
         stdin: true
         tty: true
-        command: ["sh", "-c"]
+        command: ["sh", "-c", "-xv"]
         args:
         - |-
           #!/bin/bash sh
