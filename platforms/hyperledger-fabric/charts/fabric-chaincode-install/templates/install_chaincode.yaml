@@ -72,7 +72,7 @@ spec:
           value: "{{ $.Values.metadata.network.version }}"
         - name: VAULT_TYPE
           value: "{{ $.Values.vault.type }}"
-        command: ["sh", "-c"]
+        command: ["sh", "-c", "-xv"]
         args:
         - |-
           #!/usr/bin/env sh
@@ -136,10 +136,10 @@ spec:
         imagePullPolicy: IfNotPresent
         stdin: true
         tty: true
-        command: ["sh", "-c"]
+        command: ["sh", "-c", "-xv"]
         args:
         - |-
-          #!/bin/bash sh -xv
+          #!/bin/bash sh
 
           . /scripts/package-manager.sh
 
