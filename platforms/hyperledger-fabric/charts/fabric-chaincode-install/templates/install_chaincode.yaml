@@ -136,10 +136,10 @@ spec:
         imagePullPolicy: IfNotPresent
         stdin: true
         tty: true
-        command: ["sh", "-c", "-xv"]
+        command: ["sh", "-c"]
         args:
         - |-
-          #!/bin/bash sh
+          #!/bin/bash sh -xv
 
           . /scripts/package-manager.sh
 
