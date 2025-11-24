@@ -136,7 +136,7 @@ spec:
         imagePullPolicy: IfNotPresent
         stdin: true
         tty: true
-        command: ["sh", "-c"]
+        command: ["sh", "-c", "-xv"]
         args:
         - |-
           #!/bin/bash sh
