@@ -24,7 +24,7 @@
       vars:
         build_path: "./build"
         namespace: "{{ item.name | lower}}-net"
-        component_type: "{{ item.type | lower}}"
+        component_type: "{{ item.type | lower }}"
         component_services: "{{ item.services }}"
         vault: "{{ item.vault }}"
         git_protocol: "{{ item.gitops.git_protocol }}"
@@ -32,9 +32,9 @@
         git_branch: "{{ item.gitops.branch }}"
         docker_url: "{{ network.docker.url }}"
         charts_dir: "{{ item.gitops.chart_source }}"
-        values_dir: "{{playbook_dir}}/../../../{{item.gitops.release_dir}}/{{ item.name | lower }}"
+        values_dir: "{{ playbook_dir }}/../../../{{ item.gitops.release_dir }}/{{ item.name | lower }}"
       loop: "{{ network['organizations'] }}"
-      when: item.type == 'peer'
+      when: item.type is defined and item.type == 'peer'
 
     ############################################################################################
     # Check if CA server is available
@@ -43,7 +43,7 @@
         name: "{{ playbook_dir }}/../../shared/configuration/roles/check/helm_component"
       vars:
         component_name: "{{ component_services.ca.name }}-tools"
-        component: "{{ item.name | lower}}"
+        component: "{{ item.name | lower }}"
         component_type: "Pod"
         component_services: "{{ item.services }}"
         namespace: "{{ item.name | lower }}-net"
@@ -52,9 +52,8 @@
           - name = {{ component_name }}
         vault: "{{ item.vault }}"
         ca: "{{ item.services.ca }}"
-      loop: "{{ network['organizations'] }}"
-      when:
-        - item.type == 'peer'
+      loop: "{{ network.organizations }}"
+      when: item.type is defined and item.type == 'peer'
 
     ############################################################################################
     # Check if CA CLI is available
@@ -63,7 +62,7 @@
         name: "{{ playbook_dir }}/../../shared/configuration/roles/check/helm_component"
       vars:
         component_name: "{{ component_services.ca.name }}-tools"
-        component: "{{ item.name | lower}}"
+        component: "{{ item.name | lower }}"
         component_type: "Pod"
         component_services: "{{ item.services }}"
         namespace: "{{ item.name | lower }}-net"
@@ -73,8 +72,7 @@
         vault: "{{ item.vault }}"
         ca: "{{ item.services.ca }}"
       loop: "{{ network['organizations'] }}"
-      when:
-        - item.type == 'peer'
+      when: item.type is defined and item.type == 'peer'
 
     ############################################################################################
     # This task generates the crypto material by executing the generate-crypto-peer-chaincode.sh script 
@@ -94,8 +92,7 @@
         ca_server_url: "{{ item.ca_data.url }}"
         setup_user_env: true
       loop: "{{ network['organizations'] }}"
-      when: 
-        - item.type == 'peer'
+      when: item.type is defined and item.type == 'peer'
 
     ############################################################################################
     # This task generates the crypto material by executing the generate-crypto-chaincode-server.sh script
@@ -115,8 +112,7 @@
         ca_server_url: "{{ item.ca_data.url }}"
         setup_user_env: true
       loop: "{{ network['organizations'] }}"
-      when: 
-        - item.type == 'peer'
+      when: item.type is defined and item.type == 'peer'
 
     ############################################################################################
     # This task installs the external chaincode on the desired peers
@@ -140,9 +136,7 @@
         charts_dir: "{{ item.gitops.chart_source }}"
         values_dir: "{{playbook_dir}}/../../../{{item.gitops.release_dir}}/{{ item.name | lower }}"
       loop: "{{ network['organizations'] }}"
-      when: 
-        - item.type == 'peer'
-        - item.org_status == 'new'
+      when: item.type|default('') == 'peer' and item.org_status|default('') == 'new'
 
     ############################################################################################
     # This task deploys the external chaincode server for desired org
@@ -165,9 +159,8 @@
         charts_dir: "{{ item.gitops.chart_source }}"
         values_dir: "{{playbook_dir}}/../../../{{item.gitops.release_dir}}/{{ item.name | lower }}"
       loop: "{{ network['organizations'] }}"
-      when: 
-        - item.type == 'peer' 
-        - item.org_status == 'new'
+      when: item.type|default('') == 'peer' and item.org_status|default('') == 'new'
+
 
     ############################################################################################
     # This task approves desired installed chaincode on the peers
