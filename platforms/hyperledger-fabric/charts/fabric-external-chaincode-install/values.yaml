@@ -4,17 +4,53 @@
 #  SPDX-License-Identifier: Apache-2.0
 ##############################################################################################
 
+# TODO: review the documentation for this chart
+global:
+  # HLF Network Version
+  #Eg. version: 2.5.4
+  version: 2.5.4
+  #Provide the service account name which will be created.
+  serviceAccountName: vault-auth
+  cluster:
+    provider: aws  # choose from: minikube | aws | azure | gcp
+    cloudNativeServices: false # only 'false' is implemented
+  vault:
+    #Provide the type of vault
+    #Eg. type: hashicorp
+    type: hashicorp
+    address: http://192.168.25.5:8200
+    #Provide the vaultrole for an organization
+    #Eg. vaultrole: org1-vault-role
+    role: vault-role
+    #Provide the kubernetes auth backed configured in vault for an organization
+    #Eg. authpath: supplychain
+    # TODO: johann: the default on charts are supplychain, without dev. change here and on the external server chart
+    authPath: supplychain
+    #Provide the secret engine.
+    secretEngine: secretsv2
+    #Provide the vault path where the secrets will be stored
+    secretPrefix: "data/supplychain"
+    #Kuberenetes secret for vault ca.cert
+    #Enable or disable TLS for vault communication if value present or not
+    #Eg. tls: vaultca
+    tls: 
+  proxy:
+    #This will be the proxy/ingress provider. Can have values "none" or "haproxy"
+    #Eg. provider: "haproxy"
+    # provider: "haproxy"
+    provider: none
+    #This field contains the external URL of the organization
+    #Eg. externalUrlSuffix: test.blockchaincloudpoc.com
+    externalUrlSuffix: 
+
 metadata:
-  # HLF network version
-  network:
-    version: 2.2.2
   #Provide the namespace for organization's peer
-  #Eg. namespace: org1-net
-  namespace: org1-net
+  #Eg. namespace: supplychain-net
+  namespace: supplychain-net
   images:
     #Provide the valid image name and version for fabric tools
     #Eg. fabrictools: hyperledger/fabric-tools:1.4.0
-    fabrictools: ghcr.io/hyperledger/bevel-fabric-tools:2.2.2
+    fabrictools: ghcr.io/hyperledger/bevel-fabric-tools:2.5.4
     #Provide the valid image name and version to read certificates from vault server
     #Eg.alpineutils: ghcr.io/hyperledger/bevel-alpine:latest
     alpineutils: ghcr.io/hyperledger/bevel-alpine:latest
@@ -24,17 +60,16 @@ metadata:
   #      role: create_channel
   labels:
 
-
 peer:
   #Provide the name of the peer as per deployment yaml.
   #Eg. name: peer0
   name: peer0
   #Provide the address of the peer who creates the channel and port to be mentioned is grpc cluster IP port
   #Eg. address: peer0.org1-net:7051
-  address: peer0.org1-net:7051
+  address: peer0.supplychain-net:7051
   #Provide the localmspid for organization
-  #Eg. localmspid: Org1MSP
-  localmspid: Org1MSP
+  #Eg. localmspid: supplychainMSP
+  localmspid: supplychainMSP
   #Provide the loglevel for organization's peer
   #Eg. loglevel: info
   loglevel: info
@@ -42,53 +77,82 @@ peer:
   #Eg. tlsstatus: true
   tlsstatus: true
 
-
 vault:
-  #Provide the vaultrole for an organization
-  #Eg. vaultrole: vault-role
-  role: vault-role
-  #Provide the vault server address
-  #Eg. vaultaddress: http://Vault-884963190.eu-west-1.elb.amazonaws.com
-  address:
-  #Provide the kubernetes auth backed configured in vault for an organization
-  #Eg. authpath: devorg1-net-auth
-  authpath: devorg1-net-auth
-  # Vault secretprefix for chaincode
-  chaincodesecretprefix: secretsv2/data/crypto/peerOrganizations/org1-net/peers/peer0.org1-net/chaincodes
+  # Vault secretprefix for peers' mTLS secret
+  peerschaincodetlssecretprefix: secretsv2/data/supplychain/chaincodes/secrets
   #Provide the value for vault secretprefix
   #Eg. adminsecretprefix: secretsv2/data/crypto/peerOrganizations/.../users/admin
-  adminsecretprefix: secretsv2/data/crypto/peerOrganizations/org1-net/users/admin
+  adminsecretprefix: secretsv2/data/supplychain/users/admin
   #Provide the value for vault secretprefix
   #Eg. orderersecretprefix: secretsv2/data/crypto/peerOrganizations/.../orderer
   orderersecretprefix: secretsv2/data/crypto/peerOrganizations/org1-net/orderer
-  #Provide the serviceaccountname for vault
-  #Eg. serviceaccountname: vault-auth
-  serviceaccountname: vault-auth
-  #Provide the type of vault
-  #Eg. type: hashicorp
-  type: hashicorp
   #Provide the imagesecretname for vault
   #Eg. imagesecretname: regcred
   imagesecretname: ""
   #Provide the secretgitprivatekey
   #Eg. secretgitprivatekey: secret/credentials/org1-net/git?ssh-key
   secretgitprivatekey: secretsv2/data/credentials/org1-net/git?git_password
-  #Kuberenetes secret for vault ca.cert
-  #Enable or disable TLS for vault communication if value present or not
-  #Eg. tls: vaultca
-  tls: 
   #Provide the path of the package details saved in base64 format
-  #Eg. secretgitprivatekey: secretsv2/data/crypto/peerOrganizations/org1-net/.../example/package/v1
-  chaincodepackageprefix: secretsv2/data/crypto/peerOrganizations/org1-net/chaincodes/example/package/v1
+  #Eg. chaincodepackageprefix: secretsv2/data/supplychain/chaincodes
+  chaincodepackageprefix: secretsv2/data/supplychain/chaincodes
 
 chaincode:
   #Provide the name of the chaincode to be installed
   #Eg. name: cc
-  name: example
+  name: ccext
   #Provide the chaincode version to be installed
   #Eg. version: "1"
   version: 1
   # if tls is disabled or not | BOOLEAN | eg. true
   tls_disabled: true
   # Chaincode server address eg. chaincode-marbles-1-carrier.carrier-net.svc.cluster.local:7052
-  address:
+  address: cc-peer0-ccext-1
+  # The local path where the external chaincode builder is stored.
+  # If not provided, it will use the peers default builder.
+  buildpack_path: /home/johann/prj/dtr/fabric-repos/bevel/build/
+
+certs:
+  # Flag indicating the creation of certificates.
+  # NOTE: Only enable for the first peer in the organization,
+  # if using mTLS.
+  generateCertificates: false
+  orgData:
+    caAddress: ca.supplychain-net:7051
+    caAdminUser: supplychain-admin
+    caAdminPassword: supplychain-adminpw
+    #Provide organization's name in lowercases
+    #Eg. orgName: supplychain
+    orgName: supplychain
+    #Provide organization's type (orderer or peer)
+    #Eg. type: orderer
+    type: chaincode
+    #Provide organization's subject
+    #Eg. componentSubject: "O=Orderer,L=51.50/-0.13/London,C=GB"
+    componentSubject: "O=Chaincode,L=51.50/-0.13/London,C=GB"
+  #Provide the identity for the peer to communicate with the chaincode
+  users:
+    # Generating User Certificates with custom attributes using Fabric CA in Bevel for Peer Organizations
+    # Eg.
+    # usersList:
+    #   - user:
+    #     identity: user1
+    #     attributes:
+    #     - key: "hf.Revoker"
+    #       value: "true"
+    #   - user:
+    #     identity: user2
+    #     attributes:
+    #     - key: "hf.Revoker"
+    #       value: "true"
+    usersList:
+      - user:
+        identity: ccext
+        attributes:
+
+  settings:
+    #Flag to create configmaps for the organization. This flag must be set to true when installing the first orderer/peer in organization and false for others.
+    createConfigMaps: false
+    refreshCertValue: false
+    addPeerValue: false
+    removeCertsOnDelete: false
+    removeOrdererTlsOnDelete: false

@@ -22,16 +22,16 @@ spec:
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
       restartPolicy: OnFailure
-      serviceAccountName: {{ $.Values.vault.serviceaccountname }}
+      serviceAccountName: {{ $.Values.global.serviceAccountName }}
       {{- if .Values.vault.imagesecretname }}
       imagePullSecrets:
         - name: {{ $.Values.vault.imagesecretname }}
       {{- end }}
       volumes:
-      {{ if .Values.vault.tls  }}
+      {{ if .Values.global.vault.tls  }}
       - name: vaultca
         secret:
-          secretName: {{ $.Values.vault.tls }}
+          secretName: {{ $.Values.global.vault.tls }}
           items:
           - key: ca.crt.pem
             path: ca-certificates.crt
@@ -51,28 +51,26 @@ spec:
         imagePullPolicy: Always
         env:
         - name: VAULT_ADDR
-          value: {{ $.Values.vault.address }}
+          value: {{ $.Values.global.vault.address }}
         - name: KUBERNETES_AUTH_PATH
-          value: {{ $.Values.vault.authpath }}
+          value: {{ $.Values.global.vault.authPath }}
         - name: VAULT_APP_ROLE
-          value: {{ $.Values.vault.role }}
-        - name: VAULT_CHAINCODE_SECRET_PREFIX
-          value: "{{ $.Values.vault.chaincodesecretprefix }}"
+          value: {{ $.Values.global.vault.role }}
+        - name: VAULT_CHAINCODE_PEER_SECRET_PREFIX
+          value: {{ $.Values.vault.peerschaincodetlssecretprefix }}
         - name: VAULT_PEER_SECRET_PREFIX
           value: "{{ $.Values.vault.adminsecretprefix }}"
-        - name: VAULT_ORDERER_SECRET_PREFIX
-          value: "{{ $.Values.vault.orderersecretprefix }}"
         - name: CHAINCODE_NAME
           value: "{{ $.Values.chaincode.name }}"
         - name: MOUNT_PATH
           value: /secret
         - name: NETWORK_VERSION
-          value: "{{ $.Values.metadata.network.version }}"
+          value: "{{ $.Values.global.version }}"
         - name: CHAINCODE_TLS_DISABLED
           value: "{{ $.Values.chaincode.tls_disabled }}"
         - name: VAULT_TYPE
-          value: "{{ $.Values.vault.type }}"
-        command: ["sh", "-c", "-xv"]
+          value: "{{ $.Values.global.vault.type }}"
+        command: ["sh", "-c"]
         args:
         - |-
           #!/usr/bin/env sh
@@ -81,16 +79,8 @@ spec:
           # Calling a function to retrieve the vault token.
           vaultBevelFunc "init"
 
-          echo "Getting Orderer TLS certificates from Vault."
-          vaultBevelFunc "readJson" "${VAULT_ORDERER_SECRET_PREFIX}/tls"
-
-          TLS_CA_CERT=$(echo ${VAULT_SECRET} | jq -r '.["ca.crt"]')
-          OUTPUT_PATH="${MOUNT_PATH}/orderer/tls"
-          mkdir -p ${OUTPUT_PATH}
-          echo "${TLS_CA_CERT}" >> ${OUTPUT_PATH}/ca.crt
-
           echo "Getting MSP certificates from Vault."
-          vaultBevelFunc "readJson" "${VAULT_PEER_SECRET_PREFIX}/msp"
+          vaultBevelFunc "readJson" "${VAULT_PEER_SECRET_PREFIX}-msp"
 
           ADMINCERT=$(echo ${VAULT_SECRET} | jq -r '.["admincerts"]')
           CACERTS=$(echo ${VAULT_SECRET} | jq -r '.["cacerts"]')
@@ -113,20 +103,25 @@ spec:
 
           if [ "${CHAINCODE_TLS_DISABLED}" == "false" ]; then
             echo "Getting chaincode certificates from Vault."
-            vaultBevelFunc "readJson" "${VAULT_CHAINCODE_SECRET_PREFIX}/${CHAINCODE_NAME}"
+            vaultBevelFunc "readJson" "${VAULT_CHAINCODE_PEER_SECRET_PREFIX}/peers-${CHAINCODE_NAME}-tls"
+
+            if [ "$SECRETS_AVAILABLE" != "yes" ]; then
+                echo "Peer-Chaincode TLS certificates not found in ${VAULT_CHAINCODE_PEER_SECRET_PREFIX}/peers-${CHAINCODE_NAME}-tls"
+                exit 1
+            fi
     
-            CACERT=$(echo ${VAULT_SECRET} | jq -r '.["ca.crt"]')
-            CLIENT_CERT=$(echo ${VAULT_SECRET} | jq -r '.["client.crt"]')
-            CLIENT_KEY=$(echo ${VAULT_SECRET} | jq -r '.["client.key"]')
+            CACERT=$(echo ${VAULT_SECRET} | jq -r '.["ca_crt"]')
+            CLIENT_CERT=$(echo ${VAULT_SECRET} | jq -r '.["client_crt"]')
+            CLIENT_KEY=$(echo ${VAULT_SECRET} | jq -r '.["client_key"]')
 
             OUTPUT_PATH="${MOUNT_PATH}/chaincode"
             mkdir -p ${OUTPUT_PATH}
             echo "${CACERT}" >> ${OUTPUT_PATH}/ca.crt
             echo "${CLIENT_CERT}" >> ${OUTPUT_PATH}/client.crt
             echo "${CLIENT_KEY}" >> ${OUTPUT_PATH}/client.key
-          fi   
+          fi
         volumeMounts:
-        {{ if .Values.vault.tls  }}
+        {{ if .Values.global.vault.tls  }}
         - name: vaultca
           mountPath: "/etc/ssl/certs/"
           readOnly: true
@@ -141,22 +136,30 @@ spec:
         imagePullPolicy: Always
         env:
         - name: VAULT_ADDR
-          value: {{ $.Values.vault.address }}
+          value: {{ $.Values.global.vault.address }}
         - name: KUBERNETES_AUTH_PATH
-          value: {{ $.Values.vault.authpath }}
+          value: {{ $.Values.global.vault.authPath }}
         - name: VAULT_APP_ROLE
-          value: {{ $.Values.vault.role }}
+          value: {{ $.Values.global.vault.role }}
         - name: VAULT_CHAINCODE_PACKAGE_PREFIX
-          value: {{ $.Values.vault.chaincodepackageprefix}}
+          value: {{ $.Values.vault.chaincodepackageprefix }}
         - name: CHAINCODE_NAME
           value: "{{ $.Values.chaincode.name }}"
+        - name: CHAINCODE_ADDR
+          value: "{{ $.Values.chaincode.address }}"
         - name: CHAINCODE_VERSION
           value: "{{ $.Values.chaincode.version }}"
+        - name: CHAINCODE_TLS_DISABLED
+          value: "{{ $.Values.chaincode.tls_disabled }}"
+        {{- if not $.Values.chaincode.tls_disabled }}
+        - name: CHAINCODE_SECRET_MOUNT_PATH
+          value: /secret/chaincode
+        {{- end }}
         - name: CHAINCODE_MOUNT_PATH
           value: /chaincodepackage
         - name: VAULT_TYPE
-          value: "{{ $.Values.vault.type }}"
-        command: ["sh", "-c", "-xv"]
+          value: "{{ $.Values.global.vault.type }}"
+        command: ["sh", "-c"]
         args:
         - |-
           #!/usr/bin/env sh
@@ -165,14 +168,76 @@ spec:
           # Calling a function to retrieve the vault token.
           vaultBevelFunc "init"
 
-          echo "Getting Package Base64 from Vault in ${VAULT_CHAINCODE_PACKAGE_PREFIX}"
-          vaultBevelFunc "readJson" "${VAULT_CHAINCODE_PACKAGE_PREFIX}"
+          # Use the peer default external builder if the building path
+          # is empty.
+          kubectl -n {{ $.Values.metadata.namespace }} exec pods/fabric-peernode-{{ $.Values.peer.name }}-0 -c {{ $.Values.peer.name }} -- bash -c '
+          BUILDER_PATH=/var/hyperledger/production/buildpacks/sampleBuilder
+          DEFAULT_BUILDER_PATH=/opt/hyperledger/ccaas_builder
 
-          PACKAGE_HASH=$(echo ${VAULT_SECRET} | jq -r '.["package-base64"]') # ASK, we are not using it anywhere and, PACKAGE_HASH & PACKAGE_BASE64 both are same.
-          PACKAGE_BASE64=$(echo ${VAULT_SECRET} | jq -r '.["package-base64"]')
-          echo ${PACKAGE_BASE64} | base64 -d > ${CHAINCODE_MOUNT_PATH}/${CHAINCODE_NAME}_${CHAINCODE_VERSION}.tgz
+          stat ${BUILDER_PATH} > /dev/null 2>&1
+          if [ $? -ne 0 ]; then
+            mkdir -p ${BUILDER_PATH}
+            cp -r ${DEFAULT_BUILDER_PATH}/bin ${BUILDER_PATH}
+          fi
+          '
+
+          VAULT_CHAINCODE_PACKAGE="${VAULT_CHAINCODE_PACKAGE_PREFIX}/${CHAINCODE_NAME}/package/v${CHAINCODE_VERSION}"
+          echo "Getting Package Base64 from Vault in ${VAULT_CHAINCODE_PACKAGE}"
+          vaultBevelFunc "readJson" "${VAULT_CHAINCODE_PACKAGE}"
+          if [ "$SECRETS_AVAILABLE" = "yes" ]; then
+            echo "Chaincode package found on vault. Skipping package generation."
+            PACKAGE_BASE64=$(echo ${VAULT_SECRET} | jq -r '.["package-base64"]')
+            echo ${PACKAGE_BASE64} | base64 -d > ${CHAINCODE_MOUNT_PATH}/${CHAINCODE_NAME}_${CHAINCODE_VERSION}.tgz
+            exit 0
+          fi
+
+          echo "Package Base64 not found in ${VAULT_CHAINCODE_PACKAGE}"
+          echo "Building the package for the chaincode"
+
+          PACKAGE_NAME=${CHAINCODE_NAME}_${CHAINCODE_VERSION}
+
+          if [ "${CHAINCODE_TLS_DISABLED}" == "false" ]; then
+            echo "Packaging external chaincode. TLS enabled."
+            CA_CERT="$(cat ${CHAINCODE_SECRET_MOUNT_PATH}/ca.crt)"
+            CLIENT_CERT="$(cat ${CHAINCODE_SECRET_MOUNT_PATH}/client.crt)"
+            CLIENT_KEY="$(cat ${CHAINCODE_SECRET_MOUNT_PATH}/client.key)"
+
+            echo '{}' | jq --arg cc_addr "${CHAINCODE_ADDR}" \
+              --arg c_key "${CLIENT_KEY}" \
+              --arg c_crt "${CLIENT_CERT}" \
+              --arg ca_crt "${CA_CERT}" \
+              '{"address": $cc_addr, "dial_timeout":"10s", "tls_required":true, "client_auth_required":true, "client_key":$c_key, "client_cert":$c_crt, "root_cert":$ca_crt}' > connection.json
+          else
+            echo Packaging external chaincode. No tls.
+            echo '{"address":"'${CHAINCODE_ADDR}'","dial_timeout":"10s","tls_required":false,"client_auth_required":false,"client_key":"","client_cert":"","root_cert":""}' > connection.json
+          fi
+
+          echo '{"path":"","type":"ccaas","label":"'${PACKAGE_NAME}'"}' > metadata.json
+
+          tar cfz code.tar.gz connection.json;
+          tar cfz ${CHAINCODE_MOUNT_PATH}/${PACKAGE_NAME}.tgz code.tar.gz metadata.json;
+
+          PACKAGE_BASE64=$(base64 -w 0 ${CHAINCODE_MOUNT_PATH}/${PACKAGE_NAME}.tgz)
+
+          # see https://github.com/hyperledger/fabric/blob/e1e8e2e52aa4fc543360d245fe6554a0eaf81183/core/chaincode/persistence/persistence.go#L246-L249
+          PACKAGE_ID="${CHAINCODE_NAME}_${CHAINCODE_VERSION}:$(sha256sum ${CHAINCODE_MOUNT_PATH}/${PACKAGE_NAME}.tgz | awk '{print $1}')"
+          echo "Package ID: ${PACKAGE_ID}"
+
+          echo "
+          {
+            \"data\":
+              {
+                \"package-base64\": \"${PACKAGE_BASE64}\",
+                \"package-id\": \"${PACKAGE_ID}\"
+
+              }
+          }" > payload.json
+          cat payload.json
+          vaultBevelFunc "write" "${VAULT_CHAINCODE_PACKAGE}" "payload.json"
+
+          kubectl -n {{ $.Values.metadata.namespace }} create configmap {{ $.Values.chaincode.name }}-{{ $.Values.chaincode.version }}-package-id --from-literal=package-id=${PACKAGE_ID}
         volumeMounts:
-        {{ if .Values.vault.tls  }}
+        {{ if .Values.global.vault.tls  }}
         - name: vaultca
           mountPath: "/etc/ssl/certs/"
           readOnly: true
@@ -180,6 +245,8 @@ spec:
         - name: chaincodepackage
           mountPath: /chaincodepackage
           readOnly: false
+        - name: certificates
+          mountPath: /secret
         - name: scripts-volume
           mountPath: /scripts/bevel-vault.sh
           subPath: bevel-vault.sh
@@ -189,7 +256,7 @@ spec:
         imagePullPolicy: Always
         stdin: true
         tty: true
-        command: ["sh", "-c", "-xv"]
+        command: ["sh", "-c"]
         args:
         - |-
           #!/bin/bash sh
@@ -231,8 +298,6 @@ spec:
           value: "{{ $.Values.peer.tlsstatus }}"
         - name: CORE_PEER_TLS_ROOTCERT_FILE
           value: /opt/gopath/src/github.com/hyperledger/fabric/crypto/admin/msp/cacerts/ca.crt
-        - name: ORDERER_CA
-          value: /opt/gopath/src/github.com/hyperledger/fabric/crypto/orderer/tls/ca.crt
         - name: CORE_PEER_MSPCONFIGPATH
           value: /opt/gopath/src/github.com/hyperledger/fabric/crypto/admin/msp
         - name: CHAINCODE_CERTS_PATH
@@ -250,7 +315,7 @@ spec:
         - name: CORE_CHAINCODE_BUILDER
           value: "{{ $.Values.chaincode.builder }}"
         - name: NETWORK_VERSION
-          value: "{{ $.Values.metadata.network.version }}"
+          value: "{{ $.Values.global.version }}"
         - name: CC_RUNTIME_LANGUAGE
           value: "{{ $.Values.chaincode.lang }}"
         - name: CHAINCODE_MOUNT_PATH

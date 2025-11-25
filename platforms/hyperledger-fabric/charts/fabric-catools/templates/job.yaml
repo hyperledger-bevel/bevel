@@ -10,8 +10,6 @@ kind: Job
 metadata:
   name: {{ .Release.Name }}-certs-job
   namespace: {{ .Release.Namespace }}
-  annotations:
-    helm.sh/hook-delete-policy: "before-hook-creation"
   labels:
     app.kubernetes.io/name: {{ include "fabric-catools.name" . }}-job
     app.kubernetes.io/component: ca-tools
@@ -62,6 +60,13 @@ spec:
           items:
             - key: generate-crypto-peer.sh
               path: generate-crypto-peer.sh
+      - name: generate-crypto-peer-chaincode
+        configMap:
+          name: crypto-scripts-cm
+          defaultMode: 0775
+          items:
+            - key: generate-crypto-peer-chaincode.sh
+              path: generate-crypto-peer-chaincode.sh
       - name: generate-crypto-add-peer
         configMap:
           name: crypto-scripts-cm
@@ -97,6 +102,13 @@ spec:
           items:
             - key: store-vault-users.sh
               path: store-vault-users.sh
+      - name: store-vault-chaincode
+        configMap:
+          name: chaincode-peer-script-store-vault
+          defaultMode: 0775
+          items:
+            - key: store-vault-chaincode.sh
+              path: store-vault-chaincode.sh
       - name: scripts-volume
         configMap:
           name: bevel-vault-script
@@ -255,6 +267,28 @@ spec:
                 ./store-vault-users.sh {{ .identity }}
             {{ end }}
               fi;
+
+              if [ "$COMPONENT_TYPE" = "chaincode" ]; then
+                # Generate crypto material for chaincode
+
+                {{- if eq .Values.orgData.type "chaincode" }}
+                USER_IDENTITY={{ (index .Values.users.usersList 0).identity }}
+                {{- end }}
+                echo User identity is ${USER_IDENTITY}
+
+                checkSecrets ${COMPONENT_TYPE}s/secrets ${USER_IDENTITY}-tls
+
+                if  [ ! -e /crypto-config/${USER_IDENTITY}-tls-exists ] || [ "$REFRESH_CERT_VALUE" = "true" ]; then
+                  cd /root/ca-tools/org
+                  ./generate-crypto-peer-chaincode.sh ${COMPONENT_TYPE} ${USER_IDENTITY}
+
+                  # Store peer identity for chaincode on vault
+                  cd /scripts/chaincode
+                  ./store-vault-chaincode.sh ${USER_IDENTITY}
+
+                fi
+              fi
+
               # this command creates the indicator of the completion of scripts
               echo "Certificate generation complete."
           volumeMounts:
@@ -275,6 +309,9 @@ spec:
           - name: generate-user-crypto
             mountPath: /root/ca-tools/org/generate-user-crypto.sh
             subPath: generate-user-crypto.sh
+          - name: generate-crypto-peer-chaincode
+            mountPath: /root/ca-tools/org/generate-crypto-peer-chaincode.sh
+            subPath: generate-crypto-peer-chaincode.sh
           - name: package-manager
             mountPath: /scripts/package-manager.sh
             subPath: package-manager.sh
@@ -287,6 +324,9 @@ spec:
           - name: store-vault-users
             mountPath: /scripts/peer/store-vault-users.sh
             subPath: store-vault-users.sh
+          - name: store-vault-chaincode
+            mountPath: /scripts/chaincode/store-vault-chaincode.sh
+            subPath: store-vault-chaincode.sh
           - name: scripts-volume
             mountPath: /scripts/bevel-vault.sh
             subPath: bevel-vault.sh

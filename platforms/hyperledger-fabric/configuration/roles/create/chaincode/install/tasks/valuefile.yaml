@@ -32,16 +32,13 @@
   include_role:
     name: helm_component
   vars:
-    orderer_address: "{{ orderer.uri }}"
     type: "install_chaincode_job"
     org_type: "peer"
     peer_name: "{{ peer.name }}"
     peer_address: "{{ peer.name }}.{{ namespace }}:{{ peer.grpc.port }}"
     component_name: "chaincode-install-{{ name }}-{{ peer.name }}-{{ chaincode.name }}-{{ chaincode.version | replace('.','-')}}"
     component_chaincode: "{{ chaincode }}"
-  loop: "{{ network['orderers'] }}"
-  loop_control:
-    loop_var: orderer
+    env_type: "{{ network.env.type }}"
   when: install_chaincode.resources|length == 0
 
 # Git Push : Push the above generated files to git directory 

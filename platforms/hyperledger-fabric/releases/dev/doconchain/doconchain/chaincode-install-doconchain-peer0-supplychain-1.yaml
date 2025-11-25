@@ -22,8 +22,8 @@ spec:
       network:
         version: 2.5.4
       images:
-        fabricTools: ghcr.io/hyperledger/bevel-fabric-tools:2.5.4
-        alpineUtils: henjimantaring/bevel-alpine:arm64
+        fabrictools: ghcr.io/hyperledger/bevel-fabric-tools:2.5.4
+        alpineutils: ghcr.io/hyperledger/bevel-alpine:latest
 
     peer:
       name: peer0
@@ -35,15 +35,12 @@ spec:
       role: vault-role
       address: http://vault.vault.svc:8200
       authpath: proddoconchain
-      adminsecretprefix: secretsv2/data/doconchain/peerOrganizations/doconchain-net/users/admin 
-      orderersecretprefix: secretsv2/data/doconchain/peerOrganizations/doconchain-net/orderer
-      secretgitprivatekey: secretsv2/data/doconchain/credentials/doconchain-net/git
+      adminsecretprefix: secretsv2/data/proddoconchain/users/admin
+      secretgitprivatekey: secretsv2/data/proddoconchain/credentials/doconchain-net/git
       serviceaccountname: vault-auth
       type: hashicorp
       imagesecretname: ""
       tls: false
-    orderer:
-      address: orderer3.doconchain-net.org1proxy.hlf.doconchain.com:443
     chaincode:
       builder: hyperledger/fabric-ccenv:2.5.4
       name: supplychain

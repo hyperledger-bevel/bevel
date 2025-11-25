@@ -1,0 +1,8 @@
+dependencies:
+  - name: fabric-catools
+    alias: certs
+    repository: "file://../fabric-catools"
+    tags:
+      - catools
+    version: ~1.1.0
+    condition: certs.generateCertificates

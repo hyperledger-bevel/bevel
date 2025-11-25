@@ -470,6 +470,110 @@ data:
     done
     cd ${CURRENT_DIR}
 
+  # Generates mTLS crypto both for the peers and the chaincode
+  generate-crypto-peer-chaincode.sh: |-
+    #!/bin/bash
+    if [ $# -lt 2 ]; then
+        echo "Usage : . $0 <id-type> <id-name>"
+        exit
+    fi
+
+    set -x
+
+    # Input parameters
+    FULLY_QUALIFIED_ORG_NAME="{{ .Release.Namespace }}"
+    ORG_NAME="{{ .Values.orgData.orgName }}"
+    TYPE_FOLDER=$1
+    ID_NAME=$2
+    ID_TYPE=app
+    ALTERNATIVE_ORG_NAMES=("{{ .Release.Namespace }}.svc.cluster.local" "{{ .Values.orgData.orgName }}.net" "{{ .Release.Namespace }}.{{ .Values.global.proxy.externalUrlSuffix }}")
+    AFFILIATION="{{ .Values.orgData.orgName }}"
+    SUBJECT="{{ .Values.orgData.componentSubject }}"
+    CA="{{ .Values.orgData.caAddress }}"
+
+    # Local variables
+    CURRENT_DIR=${PWD}
+    ORG_CYPTO_FOLDER="/crypto-config/${TYPE_FOLDER}Organizations/${FULLY_QUALIFIED_ORG_NAME}"
+    ROOT_TLS_CERT="/crypto-config/${TYPE_FOLDER}Organizations/${FULLY_QUALIFIED_ORG_NAME}/ca/ca.${FULLY_QUALIFIED_ORG_NAME}-cert.pem"
+    CAS_FOLDER="${HOME}/ca-tools/cas/ca-${ORG_NAME}"
+    ORG_HOME="${HOME}/ca-tools/${ORG_NAME}"
+
+
+    ## Register and enroll chaincode cert for peer
+
+    # Get the user identity
+    ORG_USER="${ID_NAME}@${FULLY_QUALIFIED_ORG_NAME}"
+    ORG_USERPASS="${ID_NAME}@${FULLY_QUALIFIED_ORG_NAME}-pw"
+    ADMIN_USER="Admin@${FULLY_QUALIFIED_ORG_NAME}"
+    ADMIN_USERPASS="Admin@${FULLY_QUALIFIED_ORG_NAME}-pw"
+
+
+    CA_ADMIN_USER="${ORG_NAME}-admin"
+    CA_ADMIN_PASS="${ORG_NAME}-adminpw"
+
+    fabric-ca-client enroll -d -u https://${CA_ADMIN_USER}:${CA_ADMIN_PASS}@${CA} --tls.certfiles ${ROOT_TLS_CERT} --home ${CAS_FOLDER}
+
+    # DNS names for chaincode server
+    CSR_HOSTS="${ID_NAME}.${FULLY_QUALIFIED_ORG_NAME}"
+    for i in "${ALTERNATIVE_ORG_NAMES[@]}"
+    do
+      CSR_HOSTS="${CSR_HOSTS},${ID_NAME}.${i}"
+    done
+    echo "Registering and enrolling $ID_NAME with csr hosts ${CSR_HOSTS}"
+
+    # Checking if the user msp folder exists in the CA server	
+    if [ ! -d "${ORG_HOME}/client${ID_NAME}" ]; then # if user certificates do not exist
+
+        ## Register and enroll User for Org
+        fabric-ca-client register -d --id.name ${ORG_USER} --id.secret ${ORG_USERPASS} --id.type ${ID_TYPE} --csr.names "${SUBJECT}" --tls.certfiles ${ROOT_TLS_CERT} --home ${CAS_FOLDER}
+
+        # Enroll the registered user to generate enrollment certificate
+        fabric-ca-client enroll -d -u https://${ORG_USER}:${ORG_USERPASS}@${CA} --tls.certfiles ${ROOT_TLS_CERT} --home ${ORG_HOME}/client${ID_NAME}
+
+        mkdir ${ORG_HOME}/client${ID_NAME}/msp/admincerts
+        cp ${ORG_HOME}/client${ID_NAME}/msp/signcerts/* ${ORG_HOME}/client${ID_NAME}/msp/admincerts/${ORG_USER}-cert.pem
+
+        mkdir -p ${ORG_CYPTO_FOLDER}/users/${ORG_USER}
+        cp -R ${ORG_HOME}/client${ID_NAME}/msp ${ORG_CYPTO_FOLDER}/users/${ORG_USER}
+
+        # Get TLS cert for user and copy to appropriate location
+        fabric-ca-client enroll -d --enrollment.profile tls -u https://${ORG_USER}:${ORG_USERPASS}@${CA} --csr.hosts "${CSR_HOSTS}" -M ${ORG_HOME}/client${ID_NAME}/tls --tls.certfiles ${ROOT_TLS_CERT}
+
+        # Copy the TLS key and cert to the appropriate place
+        mkdir -p ${ORG_CYPTO_FOLDER}/users/${ORG_USER}/tls
+        cp ${ORG_HOME}/client${ID_NAME}/tls/keystore/* ${ORG_CYPTO_FOLDER}/users/${ORG_USER}/tls/client.key
+        cp ${ORG_HOME}/client${ID_NAME}/tls/signcerts/* ${ORG_CYPTO_FOLDER}/users/${ORG_USER}/tls/client.crt
+        cp ${ORG_HOME}/client${ID_NAME}/tls/tlscacerts/* ${ORG_CYPTO_FOLDER}/users/${ORG_USER}/tls/ca.crt
+
+    else # If User certificate exists
+
+        # Current datetime + 5 minutes | e.g. 20210302182036
+        CUR_DATETIME=$(date -d "$(echo $(date)' + 5 minutes')" +'%Y%m%d%H%M%S')
+
+        # Extracting "notAfter" datetime from the existing user certificate | e.g. 20210302182036
+        CERT_DATETIME=$(date -d "$(echo $(openssl x509 -noout -enddate < ${ORG_HOME}/client${ID_NAME}/msp/signcerts/cert.pem) | sed 's/notAfter=//g')" +'%Y%m%d%H%M%S')
+
+        # In case the certificate is expired or attrs key and value pairs do not match completly, generate a new certificate for the user
+        if [ "${CUR_DATETIME}" -ge "$CERT_DATETIME" ]; then
+
+            # Generate a new enrollment certificate
+            fabric-ca-client enroll -d -u https://${ORG_USER}:${ORG_USERPASS}@${CA} --tls.certfiles ${ROOT_TLS_CERT} --home ${ORG_HOME}/client${ID_NAME}
+
+            cp ${ORG_HOME}/client${ID_NAME}/msp/signcerts/* ${ORG_HOME}/client${ID_NAME}/msp/admincerts/${ORG_USER}-cert.pem
+            cp -R ${ORG_HOME}/client${ID_NAME}/msp ${ORG_CYPTO_FOLDER}/users/${ORG_USER}
+
+            # Get TLS cert for user and copy to appropriate location
+            fabric-ca-client enroll -d --enrollment.profile tls -u https://${ORG_USER}:${ORG_USERPASS}@${CA} -M ${ORG_HOME}/client${ID_NAME}/tls --tls.certfiles ${ROOT_TLS_CERT}
+
+            # Copy the TLS key and cert to the appropriate place
+            cp ${ORG_HOME}/client${ID_NAME}/tls/keystore/* ${ORG_CYPTO_FOLDER}/users/${ORG_USER}/tls/client.key
+            cp ${ORG_HOME}/client${ID_NAME}/tls/signcerts/* ${ORG_CYPTO_FOLDER}/users/${ORG_USER}/tls/client.crt
+            cp ${ORG_HOME}/client${ID_NAME}/tls/tlscacerts/* ${ORG_CYPTO_FOLDER}/users/${ORG_USER}/tls/ca.crt
+        fi
+    fi
+
+    cd ${CURRENT_DIR}
+
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -1064,5 +1168,89 @@ data:
 
     ORG_CYPTO_USERS_FOLDER="/crypto-config/peerOrganizations/${COMPONENT_NAME}/users"
     saveUserSecrets $1
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: chaincode-peer-script-store-vault
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: users-script-vault
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/part-of: {{ include "fabric-catools.fullname" . }}
+    app.kubernetes.io/namespace: {{ .Release.Namespace }}
+    app.kubernetes.io/release: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: helm
+data:
+  store-vault-chaincode.sh: |-
+    #!/bin/bash
+
+    formatCertificate () {
+      NAME="${1##*/}"
+      while IFS= read -r line
+      do
+        echo "$line\n"
+      done < ${1} > ${2}/${NAME}.txt
+    }
+    function saveChaincodeSecrets {
+      USER=$1
+      TLS_KEY=$1-tls
+{{- if eq .Values.global.vault.type "hashicorp" }}
+      . ../bevel-vault.sh
+      # Calling a function to retrieve the vault token.
+      vaultBevelFunc "init"
+  
+      FORMAT_CERTIFICATE_PATH="/formatcertificate"
+
+      mkdir -p ${FORMAT_CERTIFICATE_PATH}/${USER}/tls
+      mkdir -p ${FORMAT_CERTIFICATE_PATH}/${USER}/msp
+      mkdir -p ${FORMAT_CERTIFICATE_PATH}/${USER}/msp/cacerts
+      mkdir -p ${FORMAT_CERTIFICATE_PATH}/${USER}/msp/tlscacerts
+
+      if [ ! -e /crypto-config/${TLS_KEY}-exists ] || [ "$REFRESH_CERT_VALUE" = "true" ]; then
+        # This commands put the certificates with correct format for the curl command
+        formatCertificate "${ORG_CYPTO_USERS_FOLDER}/${USER}@${COMPONENT_NAME}/tls/ca.crt" "${FORMAT_CERTIFICATE_PATH}/${USER}/tls"
+        formatCertificate "${ORG_CYPTO_USERS_FOLDER}/${USER}@${COMPONENT_NAME}/tls/client.crt" "${FORMAT_CERTIFICATE_PATH}/${USER}/tls"
+        formatCertificate "${ORG_CYPTO_USERS_FOLDER}/${USER}@${COMPONENT_NAME}/tls/client.key" "${FORMAT_CERTIFICATE_PATH}/${USER}/tls"
+
+        CA_CRT=$(cat ${FORMAT_CERTIFICATE_PATH}/${USER}/tls/ca.crt.txt)
+        CLIENT_CRT=$(cat ${FORMAT_CERTIFICATE_PATH}/${USER}/tls/client.crt.txt)
+        CLIENT_KEY=$(cat ${FORMAT_CERTIFICATE_PATH}/${USER}/tls/client.key.txt)
+
+        echo "
+        {
+          \"data\": 
+            {
+              \"ca_crt\": \"${CA_CRT}\",
+              \"client_crt\": \"${CLIENT_CRT}\",
+              \"client_key\": \"${CLIENT_KEY}\"
+            }  
+        }" > payload.json
+
+        # This command copy the crypto material for users (tls)
+        vaultBevelFunc 'write' "${VAULT_SECRET_ENGINE}/${VAULT_SECRET_PREFIX}/chaincodes/secrets/${TLS_KEY}" 'payload.json'
+        rm payload.json
+      fi
+
+{{- end }}
+      # Check if secret exists
+      if [ ! -e /crypto-config/${TLS_KEY}-exists ] || [ "$REFRESH_CERT_VALUE" = "true" ]; then
+        kubectl get secret --namespace ${COMPONENT_NAME} ${TLS_KEY} >/dev/null 2>&1
+        if [ $? -eq 0 ]; then
+          # Delete the secret if exists
+          kubectl delete secret --namespace ${COMPONENT_NAME} ${TLS_KEY}
+        fi
+
+        kubectl create secret generic ${TLS_KEY} --namespace ${COMPONENT_NAME} \
+          --from-file=cacrt=${ORG_CYPTO_USERS_FOLDER}/${USER}@${COMPONENT_NAME}/tls/ca.crt \
+          --from-file=clientcrt=${ORG_CYPTO_USERS_FOLDER}/${USER}@${COMPONENT_NAME}/tls/client.crt  \
+          --from-file=clientkey=${ORG_CYPTO_USERS_FOLDER}/${USER}@${COMPONENT_NAME}/tls/client.key
+      fi
+
+      echo "${USER} certificates are successfully stored."
+    }
+
+    ORG_CYPTO_USERS_FOLDER="/crypto-config/chaincodeOrganizations/${COMPONENT_NAME}/users"
+    saveChaincodeSecrets $1
 
 {{- end }} # End createConfigMaps condition

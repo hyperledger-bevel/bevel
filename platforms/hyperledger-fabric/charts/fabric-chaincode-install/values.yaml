@@ -56,9 +56,6 @@ vault:
   #Provide the value for vault secretprefix
   #Eg. adminsecretprefix: secretsv2/data/crypto/peerOrganizations/.../users/admin
   adminsecretprefix: secretsv2/data/crypto/peerOrganizations/org1-net/users/admin
-  #Provide the value for vault secretprefix
-  #Eg. orderersecretprefix: secretsv2/data/crypto/peerOrganizations/.../orderer
-  orderersecretprefix: secretsv2/data/crypto/peerOrganizations/org1-net/orderer
   #Provide the secretgitprivatekey
   #Eg. secretgitprivatekey: secretsv2/data/credentials/org1-net/git
   secretgitprivatekey: secretsv2/data/credentials/org1-net/git
@@ -75,13 +72,6 @@ vault:
   #Enable or disable TLS for vault communication if value present or not
   #Eg. tls: vaultca
   tls: 
-
-
-orderer:
-  #Provide the address for orderer
-  #Eg. address: orderer1.org1proxy.blockchaincloudpoc.com:443
-  address: orderer1.org1proxy.blockchaincloudpoc.com:443
-
 
 chaincode:
   #Provide a valid chaincode builder image for Fabric

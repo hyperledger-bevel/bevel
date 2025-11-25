@@ -22,8 +22,8 @@ spec:
       network:
         version: {{ network.version }}
       images:
-        fabricTools: {{ docker_url }}/bevel-fabric-tools:2.5.4
-        alpineUtils: henjimantaring/bevel-alpine:arm64
+        fabrictools: {{ docker_url }}/{{ fabric_tools_image }}:{{ network.version }}
+        alpineutils: {{ docker_url }}/bevel-alpine:{{ bevel_alpine_version }}
 
     peer:
       name: {{ peer_name }}
@@ -35,9 +35,8 @@ spec:
       role: vault-role
       address: {{ vault.url }}
       authpath: {{ org.k8s.cluster_id | default('')}}{{ network.env.type }}{{ org.name | lower }}
-      adminsecretprefix: {{ vault.secret_path | default('secretsv2') }}/data/{{ org.name | lower }}/peerOrganizations/{{ namespace }}/users/admin 
-      orderersecretprefix: {{ vault.secret_path | default('secretsv2') }}/data/{{ org.name | lower }}/peerOrganizations/{{ namespace }}/orderer
-      secretgitprivatekey: {{ vault.secret_path | default('secretsv2') }}/data/{{ org.name | lower }}/credentials/{{ namespace }}/git
+      adminsecretprefix: {{ vault.secret_path | default('secretsv2') }}/data/{{ env_type }}{{ org.name | lower }}/users/admin
+      secretgitprivatekey: {{ vault.secret_path | default('secretsv2') }}/data/{{ env_type }}{{ org.name | lower }}/credentials/{{ namespace }}/git
       serviceaccountname: vault-auth
       type: {{ vault.type | default("hashicorp") }}
 {% if network.docker.username is defined and network.docker.password is defined %}
@@ -46,8 +45,6 @@ spec:
       imagesecretname: ""
 {% endif %}
       tls: false
-    orderer:
-      address: {{ orderer_address }}
     chaincode:
       builder: hyperledger/fabric-ccenv:{{ network.version }}
       name: {{ component_chaincode.name | lower | e }}
