@@ -28,6 +28,7 @@ helm_templates:
   operations_console: operations_console.tpl
   external_chaincode: external_chaincode.tpl
   install_external_chaincode_job: install_external_chaincode_job.tpl
+  charts_dir: "{{ org.gitops.chart_source }}"
 
 bevel_alpine_version: latest # Change to tag version when using tag specific images
 fabric_tools_image: bevel-fabric-tools
