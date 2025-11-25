@@ -21,7 +21,7 @@
 # Write the git credentials to Vault
 - name: Write the git credentials to Vault
   shell: |
-    vault kv put {{ vault.secret_path | default('secretsv2') }}/{{ org.name | lower }}/credentials/{{ namespace }}/git git_password="{{ chaincode.repository.password }}"
+    vault kv put {{ vault.secret_path | default('secretsv2') }}/{{ network.env.type }}{{ org.name | lower }}/credentials/{{ namespace }}/git git_password="{{ chaincode.repository.password }}"
   environment:
     VAULT_ADDR: "http://host.docker.internal:8200"
     VAULT_TOKEN: "{{ vault.root_token }}"
