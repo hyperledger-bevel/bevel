@@ -23,7 +23,7 @@ spec:
         version: {{ network.version }}
       images:
         fabricTools: {{ docker_url }}/bevel-fabric-tools:2.5.4
-        alpineUtils: hyperledger-bevel/bevel-alpine:latest
+        alpineUtils: henjimantaring/bevel-alpine:arm64
 
     peer:
       name: {{ peer_name }}
