@@ -55,7 +55,7 @@
 # Log message with approval check results
 - name: "Log approval check status for {{ chaincode.name }} v{{ chaincode.version }} on {{ peer.name }}"
   debug:
-    msg: "{{ 'Approval job for chaincode ' + chaincode.name + ' v' + chaincode.version + ' was found on peer ' + peer.name if approve_check_status.result.resources|length > 0 else 'No existing approval job found for chaincode ' + chaincode.name + ' v' + chaincode.version + ' on peer ' + peer.name + '. Will create approval job.' }}"
+    msg: "{{ 'Approval job for chaincode Will create approval job.' }}"
 
 # Set Variable approve_chaincode
 - name: "Set Variable approve_chaincode"
