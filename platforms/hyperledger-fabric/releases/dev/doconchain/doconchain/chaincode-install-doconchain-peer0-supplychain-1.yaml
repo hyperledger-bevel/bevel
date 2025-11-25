@@ -48,9 +48,9 @@ spec:
       lang: golang
       maindirectory: main
       repository:
-        hostname: "https:"
+        hostname: "github.com"
         git_username: "henjimantaring"
-        url: https://github.com/henjimantaring/bevel-samples.git
+        url: github.com/henjimantaring/bevel-samples.git
         branch: main
         path: /examples/supplychain-app/fabric/chaincode_rest_server/chaincode/supplychain
       endorsementpolicies:  ''
