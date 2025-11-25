@@ -49,7 +49,7 @@
     component_type: "OneTimeJob"
     namespace: "{{ org.name |lower }}-net"
     kubernetes: "{{ org.k8s }}"
-    component_name: "approvecc-{{ peer.name }}-{{ chaincode.name }}-{{ chaincode.version }}-{{ chaincode.sequence | default('1') }}"
+    component_name: "approvecc{{ peer.name }}{{ chaincode.name }}{{ chaincode.version }}{{ chaincode.sequence | default('1') }}"
   register: approve_check_status
 
 # Log message with approval check results
