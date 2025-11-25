@@ -27,7 +27,7 @@ spec:
 
     peer:
       name: {{ peer_name }}
-      address: {{ peer_address }}
+      address: peer0.doconchain-net.org1proxy.hlf.doconchain.com:443
       localmspid: {{ name }}MSP
       loglevel: debug
       tlsstatus: true
