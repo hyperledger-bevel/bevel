@@ -23,7 +23,7 @@ spec:
         version: 2.5.4
       images:
         fabricTools: ghcr.io/hyperledger/bevel-fabric-tools:2.5.4
-        alpineUtils: ghcr.io/hyperledger/bevel-alpine:latest
+        alpineUtils: hyperledger-bevel/bevel-alpine:latest
 
     peer:
       name: peer0
