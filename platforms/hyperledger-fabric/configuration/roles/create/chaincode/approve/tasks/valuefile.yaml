@@ -55,7 +55,7 @@
 # Log message with approval check results
 - name: "Log approval check status for {{ chaincode.name }} v{{ chaincode.version }} on {{ peer.name }}"
   debug:
-    msg: "{{ 'Approval job for chaincode Will create approval job.' }}"
+    msg: "Approval job for chaincode Will create approval job."
 
 # Set Variable approve_chaincode
 - name: "Set Variable approve_chaincode"
