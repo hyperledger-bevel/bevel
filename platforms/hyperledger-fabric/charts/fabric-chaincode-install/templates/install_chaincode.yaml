@@ -292,9 +292,9 @@ spec:
         - name: PEER_NAME
           value: {{ $.Values.peer.name }}
         - name: PEER0_ADDRESS
-          value: peer0.{{ $.Values.metadata.namespace }}:7051
+          value: {{ $.Values.peer.gossippeeraddress }}:7051
         - name: PEER_ADDRESS
-          value: {{ $.Values.peer.address }}
+          value: {{ $.Values.peer.peerAddress }}
         - name: CORE_VM_ENDPOINT
           value: unix:///host/var/run/docker.sock
         - name: FABRIC_LOGGING_SPEC
