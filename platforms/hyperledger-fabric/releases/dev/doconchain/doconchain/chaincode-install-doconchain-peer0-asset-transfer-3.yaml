@@ -1,0 +1,56 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: chaincode-install-doconchain-peer0-asset-transfer-3
+  namespace: doconchain-net
+  annotations:
+    fluxcd.io/automated: "false"
+spec:
+  interval: 1m
+  releaseName: chaincode-install-doconchain-peer0-asset-transfer-3
+  chart:
+    spec:
+      interval: 1m
+      sourceRef:
+        kind: GitRepository
+        name: flux-prod
+        namespace: flux-prod
+      chart: platforms/hyperledger-fabric/charts/fabric-chaincode-install
+  values:
+    metadata:
+      namespace: doconchain-net
+      network:
+        version: 2.5.4
+      images:
+        fabrictools: ghcr.io/hyperledger/bevel-fabric-tools:2.5.4
+        alpineutils: ghcr.io/hyperledger/bevel-alpine:latest
+
+    peer:
+      name: peer0
+      address: peer0.doconchain-net:7051
+      localmspid: doconchainMSP
+      loglevel: debug
+      tlsstatus: true
+    vault:
+      role: vault-role
+      address: http://vault.vault.svc:8200
+      authpath: proddoconchain
+      adminsecretprefix: secretsv2/data/proddoconchain/users/admin
+      secretgitprivatekey: secretsv2/data/proddoconchain/credentials/doconchain-net/git
+      serviceaccountname: vault-auth
+      type: hashicorp
+      imagesecretname: ""
+      tls: false
+    chaincode:
+      builder: hyperledger/fabric-ccenv:2.5.4
+      name: asset-transfer
+      version: 3
+      lang: golang
+      maindirectory: main
+      repository:
+        hostname: "github.com"
+        git_username: "henjimantaring"
+        url: github.com/henjimantaring/fabric-samples.git
+        branch: main
+        path: /asset-transfer-basic/chaincode-go
+      endorsementpolicies:  ''
