@@ -1,0 +1,83 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: instextcc-peer0-asset-transfer-6
+  namespace: doconchain-net
+  annotations:
+    fluxcd.io/automated: "false"
+spec:
+  interval: 1m
+  releaseName: instextcc-peer0-asset-transfer-6
+  chart:
+    spec:
+      interval: 1m
+      sourceRef:
+        kind: GitRepository
+        name: flux-prod
+        namespace: flux-prod
+      chart: platforms/hyperledger-fabric/charts/fabric-external-chaincode-install
+  values:
+    global:
+      version: 2.5.4
+      serviceAccountName: vault-auth
+      cluster:
+        provider: aws
+        cloudNativeServices: false
+      vault:
+        type: hashicorp
+        address: http://vault.vault.svc:8200
+        role: vault-role
+        authPath: proddoconchain
+        secretEngine: secretsv2
+        secretPrefix: "data/proddoconchain"
+        tls: false
+      proxy:
+        provider: haproxy
+        externalUrlSuffix: org1proxy.hlf.doconchain.com
+
+    metadata:
+      namespace: doconchain-net
+      network:
+        version: 2.5.4
+      images:
+        fabrictools: ghcr.io/hyperledger/bevel-fabric-tools:2.5.4
+        alpineutils: ghcr.io/hyperledger/bevel-alpine:latest
+    peer:
+      name: peer0
+      address: peer0.doconchain-net:7051
+      localmspid: doconchainMSP
+      loglevel: debug
+      tlsstatus: true
+    vault:
+      peerschaincodetlssecretprefix: secretsv2/data/proddoconchain/chaincodes/secrets
+      adminsecretprefix: secretsv2/data/proddoconchain/users/admin
+      imagesecretname: ""
+      secretgitprivatekey: secretsv2/data/proddoconchain/credentials/doconchain-net/git
+      chaincodepackageprefix: secretsv2/data/proddoconchain/chaincodes
+    chaincode:
+      name: asset-transfer
+      version: 6
+      tls_disabled: true
+      address: cc-asset-transfer.doconchain-net.svc.cluster.local:7052
+
+    certs:
+      generateCertificates: false
+      orgData:
+        caAddress: ca.doconchain-net.org1proxy.hlf.doconchain.com
+        caAdminUser: doconchain-admin
+        caAdminPassword: doconchain-adminpw
+        orgName: doconchain
+        type: chaincode
+        componentSubject: "O=Orderer,OU=Orderer,L=51.50/-0.13/London,C=GB"
+      users:
+        usersList:
+          - user:
+            identity: peers-asset-transfer
+            attributes:
+
+      settings:
+        createConfigMaps: false
+        refreshCertValue: false
+        addPeerValue: false
+        removeCertsOnDelete: false
+        removeOrdererTlsOnDelete: false
