@@ -52,5 +52,5 @@ spec:
         git_username: "henjimantaring"
         url: github.com/henjimantaring/fabric-samples.git
         branch: main
-        path: /fabric-samples/asset-transfer-basic/chaincode-go
+        path: /asset-transfer-basic/chaincode-go
       endorsementpolicies:  ''
