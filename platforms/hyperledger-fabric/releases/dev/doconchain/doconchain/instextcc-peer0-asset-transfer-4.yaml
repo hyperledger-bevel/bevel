@@ -57,11 +57,11 @@ spec:
     chaincode:
       name: asset-transfer
       version: 4
-      tls_disabled: false
+      tls_disabled: true
       address: cc-asset-transfer.doconchain-net.svc.cluster.local:7052
 
     certs:
-      generateCertificates: true
+      generateCertificates: false
       orgData:
         caAddress: ca.doconchain-net.org1proxy.hlf.doconchain.com
         caAdminUser: doconchain-admin
