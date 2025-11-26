@@ -78,6 +78,9 @@ spec:
 
           # Calling a function to retrieve the vault token.
           vaultBevelFunc "init"
+          echo johann prints env
+          env
+          echo 
 
           echo "Getting MSP certificates from Vault."
           vaultBevelFunc "readJson" "${VAULT_PEER_SECRET_PREFIX}-msp"
@@ -127,7 +130,7 @@ spec:
         imagePullPolicy: IfNotPresent
         stdin: true
         tty: true
-        command: ["sh", "-c", "-xv"]
+        command: ["sh", "-c"]
         args:
         - |-
           #!/bin/bash sh
