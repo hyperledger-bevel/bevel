@@ -1,13 +1,13 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: chaincode-install-doconchain-peer0-asset-transfer-1
+  name: chaincode-install-doconchain-peer0-asset-transfer-8
   namespace: doconchain-net
   annotations:
     fluxcd.io/automated: "false"
 spec:
   interval: 1m
-  releaseName: chaincode-install-doconchain-peer0-asset-transfer-1
+  releaseName: chaincode-install-doconchain-peer0-asset-transfer-8
   chart:
     spec:
       interval: 1m
@@ -44,7 +44,7 @@ spec:
     chaincode:
       builder: hyperledger/fabric-ccenv:2.5.4
       name: asset-transfer
-      version: 1
+      version: 8
       lang: golang
       maindirectory: main
       repository:
