@@ -52,7 +52,9 @@ spec:
         configMap:
           name: package-manager
       - name: dockersock
-        emptyDir: {}
+        hostPath:
+          path: /var/run/docker.sock
+          type: Socket
       initContainers:
       - name: certificates-init
         image: {{ $.Values.metadata.images.alpineutils }}
@@ -72,6 +74,8 @@ spec:
           value: "{{ $.Values.metadata.network.version }}"
         - name: VAULT_TYPE
           value: "{{ $.Values.vault.type }}"
+        - name: CORE_VM_ENDPOINT
+          value: unix:///host/var/run/docker.sock
         command: ["sh", "-c"]
         args:
         - |-
@@ -132,8 +136,9 @@ spec:
           - name: DOCKER_TLS_CERTDIR
             value: ""
           volumeMounts:
-          - name: dockersock
-            mountPath: /var/run/docker
+        - name: dockersock
+          mountPath: /host/var/run/docker.sock
+          readOnly: false
 
       containers:
       - name: installchaincode
