@@ -51,10 +51,6 @@ spec:
       - name: package-manager
         configMap:
           name: package-manager
-      - name: dockersock
-        hostPath:
-          path: /var/run/docker.sock
-          type: Socket
       initContainers:
       - name: certificates-init
         image: {{ $.Values.metadata.images.alpineutils }}
@@ -74,8 +70,6 @@ spec:
           value: "{{ $.Values.metadata.network.version }}"
         - name: VAULT_TYPE
           value: "{{ $.Values.vault.type }}"
-        - name: CORE_VM_ENDPOINT
-          value: unix:///host/var/run/docker.sock
         command: ["sh", "-c"]
         args:
         - |-
@@ -127,19 +121,6 @@ spec:
         - name: scripts-volume
           mountPath: /scripts/bevel-vault.sh
           subPath: bevel-vault.sh
-        - name: docker-dind
-          image: docker:24-dind
-          imagePullPolicy: IfNotPresent
-          securityContext:
-            privileged: true
-          env:
-          - name: DOCKER_TLS_CERTDIR
-            value: ""
-          volumeMounts:
-        - name: dockersock
-          mountPath: /host/var/run/docker.sock
-          readOnly: false
-
       containers:
       - name: installchaincode
         image: {{ $.Values.metadata.images.fabrictools }}
@@ -346,5 +327,3 @@ spec:
         - name: package-manager
           mountPath: /scripts/package-manager.sh
           subPath: package-manager.sh
-        - name: dockersock
-          mountPath: /host/var/run
