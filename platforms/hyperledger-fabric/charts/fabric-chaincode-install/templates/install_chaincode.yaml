@@ -34,6 +34,10 @@ spec:
         - name: {{ $.Values.vault.imagesecretname }}
       {{- end }}
       volumes:
+      - name: dockersock
+        emptyDir: {}
+      - name: dind-graph
+        emptyDir: {}
       {{ if .Values.vault.tls  }}
       - name: vaultca
         secret:
@@ -321,6 +325,10 @@ spec:
         - name: CC_RUNTIME_LANGUAGE
           value: "{{ $.Values.chaincode.lang }}"
         volumeMounts:
+        - name: dockersock
+          mountPath: /host/var/run/docker.sock
+        - name: dind-graph
+          mountPath: /var/lib/docker          # optional, if installcontainer needs it
         - name: certificates
           mountPath: /opt/gopath/src/github.com/hyperledger/fabric/crypto
           readOnly: true

@@ -18,17 +18,17 @@ global:
     #Provide the type of vault
     #Eg. type: hashicorp
     type: hashicorp
-    address: http://192.168.25.5:8200
+    address: http://vault.vault.svc:8200
     #Provide the vaultrole for an organization
     #Eg. vaultrole: org1-vault-role
     role: vault-role
     #Provide the kubernetes auth backed configured in vault for an organization
     #Eg. authpath: supplychain
-    authPath: supplychain
+    authPath: proddoconchain
     #Provide the secret engine.
     secretEngine: secretsv2
     #Provide the vault path where the secrets will be stored
-    secretPrefix: "data/supplychain"
+    secretPrefix: "secretsv2/data/proddoconchain/users/admin"
     #Kuberenetes secret for vault ca.cert
     #Enable or disable TLS for vault communication if value present or not
     #Eg. tls: vaultca
@@ -45,7 +45,7 @@ global:
 metadata:
   #Provide the namespace for organization's peer
   #Eg. namespace: org1-net
-  namespace: supplychain-net
+  namespace: doconchain-net
   images:
     #Provide the valid image name and version for chaincode server
     #Eg. <DOCKER_USERNAME>/marbles:latest
@@ -77,7 +77,7 @@ chaincode:
 vault:
   #Provide the value for vault secretprefix
   #Eg. chaincodesecretprefix: secretsv2/data/crypto/peerOrganizations/.../chaincodes/.../certificate/v1
-  chaincodesecretprefix: secretsv2/data/supplychain/chaincodes/secrets
+  chaincodesecretprefix: data/proddoconchain
   #Provide the imagesecretname for vault
   #Eg. imagesecretname: regcred
   imagesecretname: ""
@@ -86,18 +86,18 @@ certs:
   # Flag indicating the creation of certificates.
   generateCertificates: false
   orgData:
-    caAddress: ca.supplychain-net:7051
-    caAdminUser: supplychain-admin
-    caAdminPassword: supplychain-adminpw
+    caAddress: ca.doconchain-net.org1proxy.hlf.doconchain.com # ca.supplychain-net:7051
+    caAdminUser: doconchain-admin
+    caAdminPassword: doconchain-adminpw
     #Provide organization's name in lowercases
     #Eg. orgName: supplychain
-    orgName: supplychain
+    orgName: doconchain
     #Provide organization's type (orderer or peer)
     #Eg. type: orderer
     type: chaincode
     #Provide organization's subject
     #Eg. componentSubject: "O=Orderer,L=51.50/-0.13/London,C=GB"
-    componentSubject: "O=Chaincode,L=51.50/-0.13/London,C=GB"
+    componentSubject: "O=Orderer,OU=Orderer,L=51.50/-0.13/London,C=GB"
   #Provide the identity for the peer to communicate with the chaincode
   users:
     # Generating User Certificates with custom attributes using Fabric CA in Bevel for Peer Organizations
@@ -115,7 +115,7 @@ certs:
     #       value: "true"
     usersList:
       - user:
-        identity: ccext
+        identity: peers-asset-transfer
         attributes:
   settings:
     #Flag to create configmaps for the organization. This flag must be set to true when installing the first orderer/peer in organization and false for others.

@@ -45,6 +45,9 @@ spec:
       - name: scripts-volume
         configMap:
           name: bevel-vault-script
+      # DinD storage (ephemeral)
+      - name: dind-docker-graph
+        emptyDir: {}
       initContainers:
       - name: certificates-init
         image: {{ $.Values.metadata.images.alpineutils }}
@@ -75,45 +78,36 @@ spec:
         - |-
           #!/usr/bin/env sh
           . /scripts/bevel-vault.sh
-
           # Calling a function to retrieve the vault token.
           vaultBevelFunc "init"
-
           echo "Getting MSP certificates from Vault."
           vaultBevelFunc "readJson" "${VAULT_PEER_SECRET_PREFIX}-msp"
-
           ADMINCERT=$(echo ${VAULT_SECRET} | jq -r '.["admincerts"]')
           CACERTS=$(echo ${VAULT_SECRET} | jq -r '.["cacerts"]')
           KEYSTORE=$(echo ${VAULT_SECRET} | jq -r '.["keystore"]')
           SIGNCERTS=$(echo ${VAULT_SECRET} | jq -r '.["signcerts"]')
           TLSCACERTS=$(echo ${VAULT_SECRET} | jq -r '.["tlscacerts"]')
-
           OUTPUT_PATH="${MOUNT_PATH}/admin/msp"
           mkdir -p ${OUTPUT_PATH}/admincerts
           mkdir -p ${OUTPUT_PATH}/cacerts
           mkdir -p ${OUTPUT_PATH}/keystore
           mkdir -p ${OUTPUT_PATH}/signcerts
           mkdir -p ${OUTPUT_PATH}/tlscacerts
-
           echo "${ADMINCERT}" >> ${OUTPUT_PATH}/admincerts/admin.crt
           echo "${CACERTS}" >> ${OUTPUT_PATH}/cacerts/ca.crt
           echo "${KEYSTORE}" >> ${OUTPUT_PATH}/keystore/server.key
           echo "${SIGNCERTS}" >> ${OUTPUT_PATH}/signcerts/server.crt
           echo "${TLSCACERTS}" >> ${OUTPUT_PATH}/tlscacerts/tlsca.crt
-
           if [ "${CHAINCODE_TLS_DISABLED}" == "false" ]; then
             echo "Getting chaincode certificates from Vault."
             vaultBevelFunc "readJson" "${VAULT_CHAINCODE_PEER_SECRET_PREFIX}/peers-${CHAINCODE_NAME}-tls"
-
             if [ "$SECRETS_AVAILABLE" != "yes" ]; then
                 echo "Peer-Chaincode TLS certificates not found in ${VAULT_CHAINCODE_PEER_SECRET_PREFIX}/peers-${CHAINCODE_NAME}-tls"
                 exit 1
             fi
-    
             CACERT=$(echo ${VAULT_SECRET} | jq -r '.["ca_crt"]')
             CLIENT_CERT=$(echo ${VAULT_SECRET} | jq -r '.["client_crt"]')
             CLIENT_KEY=$(echo ${VAULT_SECRET} | jq -r '.["client_key"]')
-
             OUTPUT_PATH="${MOUNT_PATH}/chaincode"
             mkdir -p ${OUTPUT_PATH}
             echo "${CACERT}" >> ${OUTPUT_PATH}/ca.crt
@@ -164,23 +158,19 @@ spec:
         - |-
           #!/usr/bin/env sh
           . /scripts/bevel-vault.sh
-
           # Calling a function to retrieve the vault token.
           vaultBevelFunc "init"
-
           # Use the peer default external builder if the building path
           # is empty.
           kubectl -n {{ $.Values.metadata.namespace }} exec pods/fabric-peernode-{{ $.Values.peer.name }}-0 -c {{ $.Values.peer.name }} -- bash -c '
           BUILDER_PATH=/var/hyperledger/production/buildpacks/sampleBuilder
           DEFAULT_BUILDER_PATH=/opt/hyperledger/ccaas_builder
-
           stat ${BUILDER_PATH} > /dev/null 2>&1
           if [ $? -ne 0 ]; then
             mkdir -p ${BUILDER_PATH}
             cp -r ${DEFAULT_BUILDER_PATH}/bin ${BUILDER_PATH}
           fi
           '
-
           VAULT_CHAINCODE_PACKAGE="${VAULT_CHAINCODE_PACKAGE_PREFIX}/${CHAINCODE_NAME}/package/v${CHAINCODE_VERSION}"
           echo "Getting Package Base64 from Vault in ${VAULT_CHAINCODE_PACKAGE}"
           vaultBevelFunc "readJson" "${VAULT_CHAINCODE_PACKAGE}"
@@ -190,18 +180,14 @@ spec:
             echo ${PACKAGE_BASE64} | base64 -d > ${CHAINCODE_MOUNT_PATH}/${CHAINCODE_NAME}_${CHAINCODE_VERSION}.tgz
             exit 0
           fi
-
           echo "Package Base64 not found in ${VAULT_CHAINCODE_PACKAGE}"
           echo "Building the package for the chaincode"
-
           PACKAGE_NAME=${CHAINCODE_NAME}_${CHAINCODE_VERSION}
-
           if [ "${CHAINCODE_TLS_DISABLED}" == "false" ]; then
             echo "Packaging external chaincode. TLS enabled."
             CA_CERT="$(cat ${CHAINCODE_SECRET_MOUNT_PATH}/ca.crt)"
             CLIENT_CERT="$(cat ${CHAINCODE_SECRET_MOUNT_PATH}/client.crt)"
             CLIENT_KEY="$(cat ${CHAINCODE_SECRET_MOUNT_PATH}/client.key)"
-
             echo '{}' | jq --arg cc_addr "${CHAINCODE_ADDR}" \
               --arg c_key "${CLIENT_KEY}" \
               --arg c_crt "${CLIENT_CERT}" \
@@ -211,30 +197,23 @@ spec:
             echo Packaging external chaincode. No tls.
             echo '{"address":"'${CHAINCODE_ADDR}'","dial_timeout":"10s","tls_required":false,"client_auth_required":false,"client_key":"","client_cert":"","root_cert":""}' > connection.json
           fi
-
           echo '{"path":"","type":"ccaas","label":"'${PACKAGE_NAME}'"}' > metadata.json
-
           tar cfz code.tar.gz connection.json;
           tar cfz ${CHAINCODE_MOUNT_PATH}/${PACKAGE_NAME}.tgz code.tar.gz metadata.json;
-
           PACKAGE_BASE64=$(base64 -w 0 ${CHAINCODE_MOUNT_PATH}/${PACKAGE_NAME}.tgz)
-
           # see https://github.com/hyperledger/fabric/blob/e1e8e2e52aa4fc543360d245fe6554a0eaf81183/core/chaincode/persistence/persistence.go#L246-L249
           PACKAGE_ID="${CHAINCODE_NAME}_${CHAINCODE_VERSION}:$(sha256sum ${CHAINCODE_MOUNT_PATH}/${PACKAGE_NAME}.tgz | awk '{print $1}')"
           echo "Package ID: ${PACKAGE_ID}"
-
           echo "
           {
             \"data\":
               {
                 \"package-base64\": \"${PACKAGE_BASE64}\",
                 \"package-id\": \"${PACKAGE_ID}\"
-
               }
           }" > payload.json
           cat payload.json
           vaultBevelFunc "write" "${VAULT_CHAINCODE_PACKAGE}" "payload.json"
-
           kubectl -n {{ $.Values.metadata.namespace }} create configmap {{ $.Values.chaincode.name }}-{{ $.Values.chaincode.version }}-package-id --from-literal=package-id=${PACKAGE_ID}
         volumeMounts:
         {{ if .Values.global.vault.tls  }}
@@ -251,6 +230,22 @@ spec:
           mountPath: /scripts/bevel-vault.sh
           subPath: bevel-vault.sh
       containers:
+      # DinD sidecar
+      - name: dind
+        image: docker:24-dind
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          privileged: true
+        env:
+        - name: DOCKER_TLS_CERTDIR
+          value: ""                     # disable TLS for simple local TCP access
+        ports:
+        - containerPort: 2375
+          name: dind-tcp
+        args: ["--host=tcp://0.0.0.0:2375", "--host=unix:///var/run/docker.sock"]
+        volumeMounts:
+        - name: dind-docker-graph
+          mountPath: /var/lib/docker
       - name: instextcc
         image: {{ $.Values.metadata.images.fabrictools }}
         imagePullPolicy: Always
@@ -261,6 +256,23 @@ spec:
         - |-
           #!/bin/bash sh
 
+          # wait for docker daemon (DinD) to be ready
+          echo "Waiting for DinD API at 127.0.0.1:2375..."
+          MAX_RETRIES=24
+          SLEEP=5
+          i=0
+          until curl -fsS http://127.0.0.1:2375/_ping >/dev/null 2>&1 || [ $i -ge $MAX_RETRIES ]; do
+            i=$((i+1))
+            echo "DinD not ready yet (attempt $i/$MAX_RETRIES). sleeping ${SLEEP}s..."
+            sleep ${SLEEP}
+          done
+          if ! curl -fsS http://127.0.0.1:2375/_ping >/dev/null 2>&1; then
+            echo "ERROR: DinD did not become ready after $((MAX_RETRIES*SLEEP))s"
+            echo "Dumping dind logs:"
+            cat /var/log/dind || true
+            exit 1
+          fi
+          echo "DinD is ready, version: $(curl -sS http://127.0.0.1:2375/version | jq -r '.ApiVersion')"
           # validate if chaincode is installed
           INSTALLED=$(peer lifecycle chaincode queryinstalled -O json | jq '.installed_chaincodes?' | jq --arg CCLABEL "${CHAINCODE_NAME}_${CHAINCODE_VERSION}" '.[]? | select(.label==$CCLABEL)')
           if [ -n "${INSTALLED}" ]
@@ -285,7 +297,9 @@ spec:
           fi
         env:
         - name: CORE_VM_ENDPOINT
-          value: unix:///host/var/run/docker.sock
+          value: tcp://127.0.0.1:2375
+        - name: DOCKER_HOST
+          value: tcp://127.0.0.1:2375
         - name: FABRIC_LOGGING_SPEC
           value: {{ $.Values.peer.loglevel }}
         - name: CORE_PEER_ID
@@ -327,3 +341,4 @@ spec:
         - name: chaincodepackage
           mountPath: /chaincodepackage
           readOnly: true
+        # (note: no mount of host docker.sock — DinD provides docker daemon in-pod)

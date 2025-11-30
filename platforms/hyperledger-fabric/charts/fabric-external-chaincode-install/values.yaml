@@ -18,18 +18,18 @@ global:
     #Provide the type of vault
     #Eg. type: hashicorp
     type: hashicorp
-    address: http://192.168.25.5:8200
+    address: http://vault.vault.svc:8200
     #Provide the vaultrole for an organization
     #Eg. vaultrole: org1-vault-role
     role: vault-role
     #Provide the kubernetes auth backed configured in vault for an organization
     #Eg. authpath: supplychain
     # TODO: johann: the default on charts are supplychain, without dev. change here and on the external server chart
-    authPath: supplychain
+    authPath: proddoconchain
     #Provide the secret engine.
     secretEngine: secretsv2
     #Provide the vault path where the secrets will be stored
-    secretPrefix: "data/supplychain"
+    secretPrefix: "data/proddoconchain"
     #Kuberenetes secret for vault ca.cert
     #Enable or disable TLS for vault communication if value present or not
     #Eg. tls: vaultca
@@ -46,7 +46,7 @@ global:
 metadata:
   #Provide the namespace for organization's peer
   #Eg. namespace: supplychain-net
-  namespace: supplychain-net
+  namespace: doconchain-net
   images:
     #Provide the valid image name and version for fabric tools
     #Eg. fabrictools: hyperledger/fabric-tools:1.4.0
@@ -66,23 +66,23 @@ peer:
   name: peer0
   #Provide the address of the peer who creates the channel and port to be mentioned is grpc cluster IP port
   #Eg. address: peer0.org1-net:7051
-  address: peer0.supplychain-net:7051
+  address: peer0.doconchain-net.org1proxy.hlf.doconchain.com:443
   #Provide the localmspid for organization
   #Eg. localmspid: supplychainMSP
-  localmspid: supplychainMSP
+  localmspid: doconchainMSP
   #Provide the loglevel for organization's peer
   #Eg. loglevel: info
-  loglevel: info
+  loglevel: debug
   #Provide the value for tlsstatus to be true or false for organization's peer
   #Eg. tlsstatus: true
   tlsstatus: true
 
 vault:
   # Vault secretprefix for peers' mTLS secret
-  peerschaincodetlssecretprefix: secretsv2/data/supplychain/chaincodes/secrets
+  peerschaincodetlssecretprefix: secretsv2/data/proddoconchain/chaincodes/secrets
   #Provide the value for vault secretprefix
   #Eg. adminsecretprefix: secretsv2/data/crypto/peerOrganizations/.../users/admin
-  adminsecretprefix: secretsv2/data/supplychain/users/admin
+  adminsecretprefix: secretsv2/data/proddoconchain/users/admin
   #Provide the value for vault secretprefix
   #Eg. orderersecretprefix: secretsv2/data/crypto/peerOrganizations/.../orderer
   orderersecretprefix: secretsv2/data/crypto/peerOrganizations/org1-net/orderer
@@ -94,12 +94,12 @@ vault:
   secretgitprivatekey: secretsv2/data/credentials/org1-net/git?git_password
   #Provide the path of the package details saved in base64 format
   #Eg. chaincodepackageprefix: secretsv2/data/supplychain/chaincodes
-  chaincodepackageprefix: secretsv2/data/supplychain/chaincodes
+  chaincodepackageprefix: secretsv2/data/proddoconchain/chaincodes
 
 chaincode:
   #Provide the name of the chaincode to be installed
   #Eg. name: cc
-  name: ccext
+  name: asset-transfer
   #Provide the chaincode version to be installed
   #Eg. version: "1"
   version: 1
@@ -109,7 +109,7 @@ chaincode:
   address: cc-peer0-ccext-1
   # The local path where the external chaincode builder is stored.
   # If not provided, it will use the peers default builder.
-  buildpack_path: /home/johann/prj/dtr/fabric-repos/bevel/build/
+  buildpack_path: /home/bevel/build/chaincode-external/sampleBuilder
 
 certs:
   # Flag indicating the creation of certificates.
@@ -117,18 +117,18 @@ certs:
   # if using mTLS.
   generateCertificates: false
   orgData:
-    caAddress: ca.supplychain-net:7051
-    caAdminUser: supplychain-admin
-    caAdminPassword: supplychain-adminpw
+    caAddress: ca.doconchain-net:7051
+    caAdminUser: doconchain-admin
+    caAdminPassword: doconchain-adminpw
     #Provide organization's name in lowercases
     #Eg. orgName: supplychain
-    orgName: supplychain
+    orgName: doconchain
     #Provide organization's type (orderer or peer)
     #Eg. type: orderer
     type: chaincode
     #Provide organization's subject
     #Eg. componentSubject: "O=Orderer,L=51.50/-0.13/London,C=GB"
-    componentSubject: "O=Chaincode,L=51.50/-0.13/London,C=GB"
+    componentSubject: "O=Orderer,OU=Orderer,L=51.50/-0.13/London,C=GB"
   #Provide the identity for the peer to communicate with the chaincode
   users:
     # Generating User Certificates with custom attributes using Fabric CA in Bevel for Peer Organizations
@@ -146,7 +146,7 @@ certs:
     #       value: "true"
     usersList:
       - user:
-        identity: ccext
+        identity: peers-asset-transfer
         attributes:
 
   settings:

@@ -7,14 +7,14 @@
 metadata:
   # HLF network version
   network:
-    version: 2.2.2
+    version: 2.5.4
   #Provide the namespace for organization's peer
   #Eg. namespace: org1-net
-  namespace: org1-net
+  namespace: doconchain-net
   images:
     #Provide the valid image name and version for fabric tools
     #Eg. fabrictools: hyperledger/fabric-tools:1.4.0
-    fabrictools: ghcr.io/hyperledger/bevel-fabric-tools:2.2.2
+    fabrictools: ghcr.io/hyperledger/bevel-fabric-tools:2.5.4
     #Provide the valid image name and version to read certificates from vault server
     #Eg.alpineutils: ghcr.io/hyperledger/bevel-alpine:latest
     alpineutils: ghcr.io/hyperledger/bevel-alpine:latest
@@ -31,13 +31,13 @@ peer:
   name: peer0
   #Provide the address of the peer who creates the channel and port to be mentioned is grpc cluster IP port
   #Eg. address: peer0.org1-net:7051
-  address: peer0.org1-net:7051
+  address: peer0.doconchain-net.org1proxy.hlf.doconchain.com:443
   #Provide the localmspid for organization
   #Eg. localmspid: Org1MSP
-  localmspid: Org1MSP
+  localmspid: doconchainMSP
   #Provide the loglevel for organization's peer
   #Eg. loglevel: info
-  loglevel: info
+  loglevel: debug
   #Provide the value for tlsstatus to be true or false for organization's peer
   #Eg. tlsstatus: true
   tlsstatus: true
@@ -46,19 +46,19 @@ peer:
 vault:
   #Provide the vaultrole for an organization
   #Eg. vaultrole: org1-vault-role
-  role: org1-vault-role
+  role: vault-role
   #Provide the vault server address
   #Eg. vaultaddress: http://Vault-884963190.eu-west-1.elb.amazonaws.com
-  address:
+  address: http://vault.vault.svc:8200
   #Provide the kubernetes auth backed configured in vault for an organization
   #Eg. authpath: devorg1-net-auth
-  authpath: devorg1-net-auth
+  authpath: proddoconchain
   #Provide the value for vault secretprefix
   #Eg. adminsecretprefix: secretsv2/data/crypto/peerOrganizations/.../users/admin
-  adminsecretprefix: secretsv2/data/crypto/peerOrganizations/org1-net/users/admin
+  adminsecretprefix: secretsv2/data/proddoconchain/users/admin
   #Provide the secretgitprivatekey
   #Eg. secretgitprivatekey: secretsv2/data/credentials/org1-net/git
-  secretgitprivatekey: secretsv2/data/credentials/org1-net/git
+  secretgitprivatekey: secretsv2/data/proddoconchain/credentials/doconchain-net/git
   #Provide the serviceaccountname for vault
   #Eg. serviceaccountname: vault-auth
   serviceaccountname: vault-auth
@@ -76,10 +76,10 @@ vault:
 chaincode:
   #Provide a valid chaincode builder image for Fabric
   #Eg. builder: hyperledger/fabric-ccenv:1.4.8
-  builder: hyperledger/fabric-ccenv:2.2.2
+  builder: hyperledger/fabric-ccenv:2.5.4
   #Provide the name of the chaincode to be installed
   #Eg. name: cc
-  name: example
+  name: asset-transfer
   #Provide the chaincode version to be installed
   #Eg. version: "1.0"
   version: 1
@@ -94,12 +94,12 @@ chaincode:
     hostname: "github.com"
     #Provide the chaincode remote git repository URL
     #Eg. url: ssh://git@innersource.accenture.com/dlta/dlt-ansible.git
-    url: "github.com/hyperledger/bevel-samples.git"
+    url: "github.com/henjimantaring/fabric-samples.git"
     #Provide the chaincode remote git repo branch to be cloned for chaincode
     #Eg. branch: develop
     branch: main
     #Provide the git repository path containing chaincodes.
     #Eg. path: dlt-chaincodes/go/chaincode_example02/
-    path: "."
+    path: "/asset-transfer-basic/chaincode-go"
     # Username for the git repo. password is taken from Vault using secretgitprivatekey
-    git_username: "user"
+    git_username: "henjimantaring"
