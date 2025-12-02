@@ -127,23 +127,16 @@ data:
     #!/bin/sh
     echo "sampleBuilder release invoked"
     exit 0
-
-  sampleBuilder.release: |-
-    #!/bin/sh
-    echo "sampleBuilder release invoked"
-    exit 0
+  bccsp:
+    default: SW
+    SW:
+      Hash: SHA2
+      Security: 256
+      FileKeystore:
+        KeyStore: /etc/hyperledger/fabric/keystore
 
 {{- $orderercrt := .Files.Get "files/orderer.crt" }}
 {{ if $orderercrt }}
- 
-  chaincode:
-    builder: external
-    externalBuilders:
-      - name: external-cc-builder
-        path: /builders/external/external-cc-builder
-        propagateEnvironment:
-          - GOPROXY
-          - GOMODCACHE
 ---
 apiVersion: v1
 kind: ConfigMap
