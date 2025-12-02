@@ -113,46 +113,21 @@ data:
 
   sampleBuilder/detect: |-
     #!/bin/sh
-    # very simple detect: accept all packages (for demo only)
-    echo "sampleBuilder detect: accepting"
+    pkgdir="$2"
+    echo "sampleBuilder detect invoked for $pkgdir"
     exit 0
 
   sampleBuilder/build: |-
     #!/bin/sh
     pkgdir="$2"
     echo "sampleBuilder build invoked for ${pkgdir}"
-    # Place your build logic here (kaniko/buildkit invocation, push to registry, etc)
-    # Exit 0 on success
+    # TODO: implement real build logic here (kaniko/buildkit)
     exit 0
 
   sampleBuilder/release: |-
     #!/bin/sh
-    echo "sampleBuilder release"
+    echo "sampleBuilder release invoked"
     exit 0
- 
-  sampleBuilder: |-
-    #!/bin/sh
-    op="$1"
-    pkgdir="$2"
-
-    case "$op" in
-      detect)
-        if [ -f "${pkgdir}/metadata.json" ] && grep -q '"type"\s*:\s*"external"' "${pkgdir}/metadata.json"; then
-          echo "sampleBuilder: detected external chaincode"
-          exit 0
-        fi
-        exit 1
-        ;;
-      build)
-        # external chaincode: no build step required
-        echo "sampleBuilder: build no-op for external"
-        exit 0
-        ;;
-      *)
-        echo "sampleBuilder: unknown op $op"
-        exit 2
-        ;;
-    esac
 
 {{- $orderercrt := .Files.Get "files/orderer.crt" }}
 {{ if $orderercrt }}
