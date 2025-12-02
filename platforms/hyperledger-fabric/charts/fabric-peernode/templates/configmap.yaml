@@ -111,20 +111,19 @@ data:
             - GOPROXY
             - GOMODCACHE
 
-  sampleBuilder/detect: |-
+  sampleBuilder.detect: |-
     #!/bin/sh
     pkgdir="$2"
     echo "sampleBuilder detect invoked for $pkgdir"
     exit 0
 
-  sampleBuilder/build: |-
+  sampleBuilder.build: |-
     #!/bin/sh
     pkgdir="$2"
     echo "sampleBuilder build invoked for ${pkgdir}"
-    # TODO: implement real build logic here (kaniko/buildkit)
     exit 0
 
-  sampleBuilder/release: |-
+  sampleBuilder.release: |-
     #!/bin/sh
     echo "sampleBuilder release invoked"
     exit 0
