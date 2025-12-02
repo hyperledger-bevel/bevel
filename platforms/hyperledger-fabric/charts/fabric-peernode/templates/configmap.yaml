@@ -102,24 +102,23 @@ metadata:
     app.kubernetes.io/managed-by: helm
 
 data:
-  core.yaml: {{ .Files.Get "conf/default_core.yaml" | nindent 8 | quote }}
+  core.yaml: |-
+{{ .Files.Get "conf/default_core.yaml" | indent 4 }}
+#
+# appended by helm: enable external chaincode builders
+#
+chaincode:
+  builder: external
+  externalBuilders:
+    - name: sampleBuilder
+      path: /builders/external/sampleBuilder
+      propagateEnvironment:
+        - GOPROXY
+        - GOMODCACHE
+  installTimeout: 300s
+  startuptimeout: 300s
+  executetimeout: 30s
 
-  sampleBuilder.detect: |-
-    #!/bin/sh
-    pkgdir="$2"
-    echo "sampleBuilder detect invoked for $pkgdir"
-    exit 0
-
-  sampleBuilder.build: |-
-    #!/bin/sh
-    pkgdir="$2"
-    echo "sampleBuilder build invoked for ${pkgdir}"
-    exit 0
-
-  sampleBuilder.release: |-
-    #!/bin/sh
-    echo "sampleBuilder release invoked"
-    exit 0
 
 {{- $orderercrt := .Files.Get "files/orderer.crt" }}
 {{ if $orderercrt }}
