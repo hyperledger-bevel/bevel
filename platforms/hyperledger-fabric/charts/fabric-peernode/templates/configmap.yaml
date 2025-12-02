@@ -101,8 +101,35 @@ metadata:
     app.kubernetes.io/release: {{ .Release.Name }}
     app.kubernetes.io/managed-by: helm
 data:
-  core.yaml: {{ .Files.Get "conf/default_core.yaml" | nindent 8 | quote }}
-  
+  core.yaml: |
+    chaincode:
+      builder: external
+      externalBuilders:
+        - name: external-cc-builder
+          path: /builders/external/external-cc-builder
+          propagateEnvironment:
+            - GOPROXY
+            - GOMODCACHE
+
+  external-cc-builder/detect: |-
+    #!/bin/sh
+    # very simple detect: accept all packages (for demo only)
+    echo "external-cc-builder detect: accepting"
+    exit 0
+
+  external-cc-builder/build: |-
+    #!/bin/sh
+    pkgdir="$2"
+    echo "external-cc-builder build invoked for ${pkgdir}"
+    # Place your build logic here (kaniko/buildkit invocation, push to registry, etc)
+    # Exit 0 on success
+    exit 0
+
+  external-cc-builder/release: |-
+    #!/bin/sh
+    echo "external-cc-builder release"
+    exit 0
+ 
   sampleBuilder: |-
     #!/bin/sh
     op="$1"
