@@ -105,29 +105,29 @@ data:
     chaincode:
       builder: external
       externalBuilders:
-        - name: external-cc-builder
-          path: /builders/external/external-cc-builder
+        - name: sampleBuilder
+          path: /builders/external/sampleBuilder
           propagateEnvironment:
             - GOPROXY
             - GOMODCACHE
 
-  external-cc-builder/detect: |-
+  sampleBuilder/detect: |-
     #!/bin/sh
     # very simple detect: accept all packages (for demo only)
-    echo "external-cc-builder detect: accepting"
+    echo "sampleBuilder detect: accepting"
     exit 0
 
-  external-cc-builder/build: |-
+  sampleBuilder/build: |-
     #!/bin/sh
     pkgdir="$2"
-    echo "external-cc-builder build invoked for ${pkgdir}"
+    echo "sampleBuilder build invoked for ${pkgdir}"
     # Place your build logic here (kaniko/buildkit invocation, push to registry, etc)
     # Exit 0 on success
     exit 0
 
-  external-cc-builder/release: |-
+  sampleBuilder/release: |-
     #!/bin/sh
-    echo "external-cc-builder release"
+    echo "sampleBuilder release"
     exit 0
  
   sampleBuilder: |-
