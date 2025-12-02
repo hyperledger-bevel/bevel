@@ -102,6 +102,30 @@ metadata:
     app.kubernetes.io/managed-by: helm
 data:
   core.yaml: {{ .Files.Get "conf/default_core.yaml" | nindent 8 | quote }}
+  
+  sampleBuilder: |-
+    #!/bin/sh
+    op="$1"
+    pkgdir="$2"
+
+    case "$op" in
+      detect)
+        if [ -f "${pkgdir}/metadata.json" ] && grep -q '"type"\s*:\s*"external"' "${pkgdir}/metadata.json"; then
+          echo "sampleBuilder: detected external chaincode"
+          exit 0
+        fi
+        exit 1
+        ;;
+      build)
+        # external chaincode: no build step required
+        echo "sampleBuilder: build no-op for external"
+        exit 0
+        ;;
+      *)
+        echo "sampleBuilder: unknown op $op"
+        exit 2
+        ;;
+    esac
 
 {{- $orderercrt := .Files.Get "files/orderer.crt" }}
 {{ if $orderercrt }}

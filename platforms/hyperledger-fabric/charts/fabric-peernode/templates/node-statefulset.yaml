@@ -344,6 +344,7 @@ spec:
       - name: builders-config
         configMap:
           name: {{ .Release.Name }}-builders-config
+          defaultMode: 0755
       - name: certificates
         emptyDir:
           medium: Memory
