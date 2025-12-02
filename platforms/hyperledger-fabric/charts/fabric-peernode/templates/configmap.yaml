@@ -17,7 +17,7 @@ metadata:
     app.kubernetes.io/release: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
 data:
-  CORE_VM_ENDPOINT: unix:///host/var/run/docker.sock
+  CORE_VM_ENDPOINT: ""
   CORE_PEER_ID: {{ .Release.Name }}.{{ .Release.Namespace }}
   FABRIC_LOGGING_SPEC: "grpc=debug:{{ .Values.peer.logLevel }}"
   CORE_LEDGER_STATE_STATEDATABASE: CouchDB
@@ -47,7 +47,7 @@ data:
   CORE_PEER_MSPCONFIGPATH: /etc/hyperledger/fabric/crypto/msp
   GODEBUG: "netdns=go"
   CORE_PEER_GOSSIP_SKIPHANDSHAKE: "true"
-  CORE_CHAINCODE_BUILDER: "{{ .Values.peer.builder }}:{{ .Values.global.version }}"
+  CORE_CHAINCODE_BUILDER: ""
   CORE_OPERATIONS_LISTENADDRESS: 0.0.0.0:9443
 ---
 apiVersion: v1
