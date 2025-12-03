@@ -22,13 +22,14 @@ image:
   fabricTools: ghcr.io/hyperledger/bevel-fabric-tools
   pullSecret: ""
 
-orderers:
-  - name: orderer1
-    adminAddress: orderer1.doconchain-net:7055
-  - name: orderer2
-    adminAddress: orderer2.doconchain-net:7055
-  - name: orderer3
-    adminAddress: orderer3.doconchain-net:7055
-
-addOrderer: false
-
+peer:
+  name: peer0
+  type: anchor
+  address: peer0.doconchain-net.org1proxy.hlf.doconchain.com:443
+  localMspId: doconchainMSP
+  logLevel: debug
+  tlsStatus: true
+  channelName: allchannel  
+  ordererAddress: orderer1.doconchain-net.org1proxy.hlf.doconchain.com:443
+  addPeerValue: false
+  addnewOrgValue: false
