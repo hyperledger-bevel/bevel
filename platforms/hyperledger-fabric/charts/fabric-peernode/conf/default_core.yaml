@@ -524,7 +524,7 @@ chaincode:
         name:
 
     # Generic builder environment, suitable for most chaincode types
-    builder: $(DOCKER_NS)/fabric-ccenv:$(TWO_DIGIT_VERSION)
+    builder: external
 
     # Enables/disables force pulling of the base docker images (listed below)
     # during user chaincode instantiation.
@@ -553,8 +553,11 @@ chaincode:
     # chaincode. The external builder detection processing will iterate over the
     # builders in the order specified below.
     externalBuilders:
-        - path: /var/hyperledger/production/buildpacks/sampleBuilder
+        - path: /builders/external/sampleBuilder
           name: sampleBuilder
+          propagateEnvironment:
+            - GOPROXY
+            - GOMODCACHE
 
     # The maximum duration to wait for the chaincode build and install process
     # to complete.
