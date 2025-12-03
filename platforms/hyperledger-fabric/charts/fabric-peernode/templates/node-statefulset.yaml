@@ -52,6 +52,25 @@ spec:
         - name: {{ .Values.image.pullSecret }}
       {{- end }}
       initContainers:
+      - name: copy-builders
+        image: busybox:1.36
+        imagePullPolicy: IfNotPresent
+        command: ["sh", "-c"]
+        args:
+          - |
+            set -e
+            # copy ConfigMap data into writable emptyDir so files are real files (not symlinks)
+            rm -rf /builders/external || true
+            mkdir -p /builders/external
+            cp -a /builders-config/* /builders/external/ || true
+            chmod +x /builders/external/sampleBuilder.detect /builders/external/sampleBuilder.build /builders/external/sampleBuilder.release || true
+            ls -l /builders/external || true
+        volumeMounts:
+          - name: builders-config
+            mountPath: /builders-config
+          - name: builders-writable
+            mountPath: /builders/external
+
       - name: certificates-init
         image: {{ .Values.image.alpineUtils }}
         imagePullPolicy: IfNotPresent
@@ -285,13 +304,13 @@ spec:
         - name: datadir
           mountPath: /var/hyperledger/production
         - name: dockersocket
-          mountPath: /host/var/run/docker.sock
+          mountPath: /var/run/docker.sock
         - name: certificates
           mountPath: /etc/hyperledger/fabric/crypto
         - name: {{ .Release.Name }}-msp-config-volume
           mountPath: /etc/hyperledger/fabric/NodeOUconfig
           readOnly: true
-        - name: builders-config
+        - name: builders-writable
           mountPath: /builders/external
         resources:
           requests:
@@ -345,6 +364,8 @@ spec:
         configMap:
           name: {{ .Release.Name }}-builders-config
           defaultMode: 0755
+      - name: builders-writable
+        emptyDir: {}
       - name: certificates
         emptyDir:
           medium: Memory
