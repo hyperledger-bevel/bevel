@@ -102,22 +102,8 @@ metadata:
     app.kubernetes.io/managed-by: helm
 
 data:
-  # include the original core.yaml content and append the chaincode config
-  core.yaml: |-
-{{ .Files.Get "conf/default_core.yaml" | indent 4 }}
-    chaincode:
-      builder: external
-      externalBuilders:
-        - name: sampleBuilder
-          path: /builders/external/sampleBuilder
-          propagateEnvironment:
-            - GOPROXY
-            - GOMODCACHE
-      installTimeout: 300s
-      startuptimeout: 300s
-      executetimeout: 30s
+  core.yaml: {{ .Files.Get "conf/default_core.yaml" | nindent 8 | quote }}
 
-  # NOTE: ConfigMap data keys must be valid: use dots or dashes, NOT slashes.
   sampleBuilder.detect: |-
     #!/bin/sh
     pkgdir="$2"
