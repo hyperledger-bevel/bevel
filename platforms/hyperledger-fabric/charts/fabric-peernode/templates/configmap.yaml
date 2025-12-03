@@ -118,19 +118,17 @@ data:
       startuptimeout: 300s
       executetimeout: 30s
 
-  # the external builder scripts — keys must be valid names (no slashes)
+  # NOTE: ConfigMap data keys must be valid: use dots or dashes, NOT slashes.
   sampleBuilder.detect: |-
     #!/bin/sh
     pkgdir="$2"
     echo "sampleBuilder detect invoked for $pkgdir"
-    # return 0 to indicate this builder can handle the package
     exit 0
 
   sampleBuilder.build: |-
     #!/bin/sh
     pkgdir="$2"
     echo "sampleBuilder build invoked for ${pkgdir}"
-    # implement build actions here; for testing keep it simple and exit 0
     exit 0
 
   sampleBuilder.release: |-
