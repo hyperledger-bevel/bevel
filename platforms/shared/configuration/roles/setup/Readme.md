@@ -4,7 +4,7 @@
 [//]: # (##############################################################################################)
 
 ## shared/configuration/roles/setup
-This folder contains common roles required for setting up necessery requirements.
+This folder contains common roles required for setting up necessary requirements.
 It contains following roles.
 ### Ambassador
 This roles setups Ambassador.
@@ -96,7 +96,7 @@ This task creates a registory temporary directory. Stores the result in *tmp_dir
 This task checks if helmi is present or not. Stores the result in *helm_stat_result*.
 
 #### 3. Install helm
-If helm is not present i.e. *helm_stat_result* is false, it downloads the helm using specefied url.
+If helm is not present i.e. *helm_stat_result* is false, it downloads the helm using specified url.
 
 #### 4. Unzip helm archive
 This tasks unzips helm archive, runs only when helm is not found.
