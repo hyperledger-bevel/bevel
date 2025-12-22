@@ -8,7 +8,7 @@ timeline
             : All platforms
         Documentation Redesign 
             : Restructure 
-            : Format Config & Ops requried sections
+            : Format Config & Ops required sections
         Github Actions 
             : All platforms
     section 2024 Q2

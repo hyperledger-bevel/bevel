@@ -1,6 +1,6 @@
 # Bevel Sequence Diagram
 
-When using Ansible automation in Bevel, it is important to understand the sequence and flow as this will determine how you confgure your networking. 
+When using Ansible automation in Bevel, it is important to understand the sequence and flow as this will determine how you configure your networking. 
 
 !!! tip
 

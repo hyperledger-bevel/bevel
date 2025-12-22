@@ -20,7 +20,7 @@ Once a Hyperledger Fabric network is up using Bevel, Bevel users might want to d
       - `CHAINCODE_TLS_DISABLED`: Boolean flag for if TLS is disabled
       - `CHAINCODE_TLS_KEY`: If TLS is enabled, path to the Client key
       - `CHAINCODE_TLS_CERT`: If TLS is enabled, path to the Client certificate
-      - `CHAINCODE_CLIENT_CA_CERT`: If TLS is enabled, path to the Root CA cetificate
+      - `CHAINCODE_CLIENT_CA_CERT`: If TLS is enabled, path to the Root CA certificate
 
     A sample chaincode server snippet in GOLANG is below, details can be found [here](https://github.com/hyperledger/fabric-samples/blob/main/asset-transfer-basic/chaincode-external/assetTransfer.go):
     ```go
