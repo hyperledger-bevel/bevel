@@ -37,11 +37,9 @@ spec:
         externalUrlSuffix: {{ org.external_url_suffix }}
 
     storage:
+      enabled: false
+      nameOverride: {{ sc_name }}
       size: 512Mi
-      reclaimPolicy: "Delete"
-      volumeBindingMode: Immediate
-      allowedTopologies:
-        enabled: false
 
     image:
       alpineUtils: {{ docker_url }}/bevel-alpine:{{ bevel_alpine_version }}

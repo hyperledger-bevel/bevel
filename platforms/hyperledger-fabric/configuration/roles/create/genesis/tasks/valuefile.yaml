@@ -12,7 +12,6 @@
     vault: "{{ org.vault }}"
     charts_dir: "{{ org.gitops.chart_source }}"
     values_dir: "{{playbook_dir}}/../../../{{org.gitops.component_dir}}/{{ org.name | lower }}"
-    generateGenisisBLock: "{{ generateGenisis }}"
     add_org: "{{ add_new_org | default(false) }}"
 
 # Git Push: Push the above generated files to git directory 

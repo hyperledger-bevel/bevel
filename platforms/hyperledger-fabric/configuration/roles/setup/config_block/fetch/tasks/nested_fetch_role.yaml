@@ -42,16 +42,22 @@
 
 # Start the cli, configure and download the configuration block
 - name: Call nested_fetch_role for the peer
-  include_tasks: get_new_org_data.yaml
+  include_tasks: get_new_org_data_v2.yaml
   vars:
-    org_name: "{{ org.name | lower }}"
-  loop: "{{ network['organizations'] }}"
+    org_name: "{{ org_new.name | lower }}"
+  loop: "{{ participants }}"
   loop_control:
-    loop_var: org  
-  when: org.org_status == 'new'
+    loop_var: org_new  
+  when: org_new.org_status == 'new'
+
+# Check if channel block0 file exists
+- name: Check if the channel_block0_fetched file exists
+  stat:
+    path: "./build/{{ channel_name | lower }}_block0_fetched"
+  register: block0_file
 
 # Fetch the config block from blockchain by executing the create_block.sh script file
-# from first peer of creator cli
+# from the peer of first approving org
 - name: Fetch and copy the configuration block from the blockchain
   shell: |
     export PEER_CLI=$(KUBECONFIG={{ org.k8s.config_file }} kubectl get po -n {{ org.name }}-net | grep "cli" | head -n 1 | awk '{print $1}')
@@ -62,7 +68,9 @@
     KUBECONFIG={{ kubernetes.config_file }} kubectl exec -n {{ org.name }}-net ${PEER_CLI} -- chmod 777 ./create_block.sh
     KUBECONFIG={{ kubernetes.config_file }} kubectl exec -n {{ org.name }}-net ${PEER_CLI} --  sh ./create_block.sh
     KUBECONFIG={{ kubernetes.config_file }} kubectl cp {{ org.name }}-net/${PEER_CLI}:/opt/gopath/src/github.com/hyperledger/fabric/peer/{{ channel_name | lower }}_update_in_envelope.pb ./build/{{ channel_name | lower}}_config_block.pb
+    touch ./build/{{ channel_name | lower }}_block0_fetched
   environment:
     ORDERER_CA: "/opt/gopath/src/github.com/hyperledger/fabric/orderer/tls/orderer.crt"
   vars: 
     kubernetes: "{{ org.k8s }}"
+  when: not block0_file.stat.exists

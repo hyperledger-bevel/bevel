@@ -1,0 +1,68 @@
+global:
+  version: 2.5.4
+  serviceAccountName: vault-auth
+  cluster:
+    provider: aws
+    cloudNativeServices: false
+  vault:
+    type: hashicorp
+    network: fabric
+    address: http://ab200c0faaff9494e8fdd94cfdab5871-2042771978.eu-west-2.elb.amazonaws.com:8200
+    authPath: e01org4-tf
+    secretEngine: kv
+    secretPrefix: "data/e01org4-tf"
+    role: vault-role
+    tls: false
+  proxy:
+    provider: none
+    externalUrlSuffix: org4proxy.blockchaincloudpoc.com
+
+image:
+  fabrictools: ghcr.io/hyperledger/bevel-fabric-tools
+  alpineUtils: ghcr.io/hyperledger/bevel-alpine:latest
+  pullSecret: ""
+
+peer:
+  name: peer0
+  address: peer0.org4-tf-net:7051
+  localMspId: org4-tfMSP
+  logLevel: info
+  tlsStatus: true
+  ordererAddress: orderer1.orderer-tf-net:7050
+
+chaincode:
+  channel: tfnet-ch1
+  name: efcc
+  version: "1.0"
+  sequence: 1
+  arguments: InitLedger, []
+  endorsementPolicies: "OR('org4-tfMSP.member','org1-tfMSP.member')"
+  builder: hyperledger/fabric-ccenv:2.5.4
+  initRequired: false
+  pdc:
+    # Enable private data collections for the chaincode
+    enabled: true
+    # Collections configuration for private data collections base64 -w 0 encoded
+    collectionsConfig: WwogIHsKICAgICJuYW1lIjogImRhdGFwb2ludENvbGxlY3Rpb24iLAogICAgInBvbGljeSI6ICJPUignb3JnNC10Zk1TUC5tZW1iZXInLCdvcmcxLXRmTVNQLm1lbWJlcicpIiwKICAgICJyZXF1aXJlZFBlZXJDb3VudCI6IDEsCiAgICAibWF4UGVlckNvdW50IjogMSwKICAgICJibG9ja1RvTGl2ZSI6IDAsCiAgICAibWVtYmVyT25seVJlYWQiOiB0cnVlLAogICAgIm1lbWJlck9ubHlXcml0ZSI6IHRydWUsCiAgICAiZW5kb3JzZW1lbnRQb2xpY3kiOiB7CiAgICAgICJzaWduYXR1cmVQb2xpY3kiOiAiT1IoJ29yZzQtdGZNU1AubWVtYmVyJywnb3JnMS10Zk1TUC5tZW1iZXInKSIKICAgIH0KICB9LAogIHsKICAgICJuYW1lIjogIm9yZzQtdGZNU1AtUHJpdmF0ZUNvbGxlY3Rpb24iLAogICAgInBvbGljeSI6ICJPUignb3JnNC10Zk1TUC5tZW1iZXInKSIsCiAgICAicmVxdWlyZWRQZWVyQ291bnQiOiAwLAogICAgIm1heFBlZXJDb3VudCI6IDEsCiAgICAiYmxvY2tUb0xpdmUiOiAwLAogICAgIm1lbWJlck9ubHlSZWFkIjogZmFsc2UsCiAgICAibWVtYmVyT25seVdyaXRlIjogdHJ1ZSwKICAgICJlbmRvcnNlbWVudFBvbGljeSI6IHsKICAgICAgInNpZ25hdHVyZVBvbGljeSI6ICJPUignb3JnNC10Zk1TUC5tZW1iZXInKSIKICAgIH0KICB9LAogIHsKICAgICJuYW1lIjogIm9yZzEtdGZNU1AtUHJpdmF0ZUNvbGxlY3Rpb24iLAogICAgInBvbGljeSI6ICJPUignb3JnMS10Zk1TUC5tZW1iZXInKSIsCiAgICAicmVxdWlyZWRQZWVyQ291bnQiOiAwLAogICAgIm1heFBlZXJDb3VudCI6IDEsCiAgICAiYmxvY2tUb0xpdmUiOiAwLAogICAgIm1lbWJlck9ubHlSZWFkIjogZmFsc2UsCiAgICAibWVtYmVyT25seVdyaXRlIjogdHJ1ZSwKICAgICJlbmRvcnNlbWVudFBvbGljeSI6IHsKICAgICAgInNpZ25hdHVyZVBvbGljeSI6ICJPUignb3JnMS10Zk1TUC5tZW1iZXInKSIKICAgIH0KICB9Cl0=
+
+# Endorsers configuration (for commit operation)
+endorsers:
+  - name: org1-tf
+    corePeerAddress: peer0.org1-tf-net:7051
+  - name: org2-tf
+    corePeerAddress: peer0.org2-tf-net:7051
+  - name: org4-tf
+    corePeerAddress: peer0.org4-tf-net:7051
+
+# Lifecycle configuration
+# Control which operations to perform
+lifecycle:
+  approve:
+    enabled: false
+    waitForInstall: true
+  commit:
+    enabled: true
+    waitForApprove: true
+  invoke:
+    enabled: true
+    waitForCommit: true

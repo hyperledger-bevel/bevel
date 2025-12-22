@@ -21,7 +21,7 @@
 <a name = "install-chaincode-hyperledger-fabric-deployment-helm-chart"></a>
 ## Install Chaincode Hyperledger Fabric Deployment Helm Chart
 ---
-A [Helm chart](https://github.com/hyperledger/bevel/blob/develop/platforms/hyperledger-fabric/charts/fabric-chaincode-install) for chaincode installation on a peer.
+A [Helm chart](https://github.com/hyperledger-bevel/bevel/blob/develop/platforms/hyperledger-fabric/charts/fabric-chaincode-install) for chaincode installation on a peer.
 
 
 <a name = "prerequisites"></a>
@@ -61,7 +61,7 @@ fabric-chaincode-install/
 <a name = "configuration"></a>
 ## Configuration
 ---
-The [values.yaml](https://github.com/hyperledger/bevel/blob/develop/platforms/hyperledger-fabric/charts/fabric-chaincode-install/values.yaml) file contains configurable values for the Helm chart. We can modify these values according to the deployment requirements. Here are some important configuration options:
+The [values.yaml](https://github.com/hyperledger-bevel/bevel/blob/develop/platforms/hyperledger-fabric/charts/fabric-chaincode-install/values.yaml) file contains configurable values for the Helm chart. We can modify these values according to the deployment requirements. Here are some important configuration options:
 
 ### Metadata
 
@@ -114,7 +114,7 @@ The [values.yaml](https://github.com/hyperledger/bevel/blob/develop/platforms/hy
 | language                    | Language of the chaincode                                         | golang                                                      |
 | maindirectory               | Path to the main.go package if different from chaincode directory | cmd                                                         |
 | repository.hostname         | Chaincode remote Git repository hostname                          | github.com                                   |
-| repository.URL              | Chaincode remote Git repository URL                               | github.com/hyperledger/bevel-samples.git    |
+| repository.URL              | Chaincode remote Git repository URL                               | github.com/hyperledger-bevel/bevel-samples.git    |
 | repository.branch           | Chaincode remote Git repository branch to be cloned for chaincode | main                                                     |
 | repository.path             | Git repository path containing chaincodes                         | "."                      |
 | repository.git_username     | Username for the Git repository                                   | user                                                        |
@@ -126,7 +126,7 @@ The [values.yaml](https://github.com/hyperledger/bevel/blob/develop/platforms/hy
 
 To deploy the fabric-chaincode-install Helm chart, follow these steps:
 
-1. Modify the [values.yaml](https://github.com/hyperledger/bevel/blob/main/platforms/hyperledger-fabric/charts/fabric-chaincode-install/values.yaml) file to set the desired configuration values.
+1. Modify the [values.yaml](https://github.com/hyperledger-bevel/bevel/blob/main/platforms/hyperledger-fabric/charts/fabric-chaincode-install/values.yaml) file to set the desired configuration values.
 2. Run the following Helm command to install the chart:
     ```
     $ helm repo add bevel https://hyperledger.github.io/bevel/
@@ -152,7 +152,7 @@ Replace `<namespace>` with the actual namespace where the Job was created. This 
 ## Updating the Deployment
 ---
 
-If we need to update the deployment with new configurations or changes, modify the same [values.yaml](https://github.com/hyperledger/bevel/blob/main/platforms/hyperledger-fabric/charts/fabric-chaincode-install/values.yaml) file with the desired changes and run the following Helm command:
+If we need to update the deployment with new configurations or changes, modify the same [values.yaml](https://github.com/hyperledger-bevel/bevel/blob/main/platforms/hyperledger-fabric/charts/fabric-chaincode-install/values.yaml) file with the desired changes and run the following Helm command:
 ```
 $ helm upgrade <release-name> ./fabric-chaincode-install
 ```
@@ -173,7 +173,7 @@ Replace `<release-name>` with the name of the release. This command will remove 
 <a name = "contributing"></a>
 ## Contributing
 ---
-If you encounter any bugs, have suggestions, or would like to contribute to the [Install Chaincode Hyperledger Fabric Deployment Helm Chart](https://github.com/hyperledger/bevel/blob/main/platforms/hyperledger-fabric/charts/fabric-chaincode-install), please feel free to open an issue or submit a pull request on the [project's GitHub repository](https://github.com/hyperledger/bevel).
+If you encounter any bugs, have suggestions, or would like to contribute to the [Install Chaincode Hyperledger Fabric Deployment Helm Chart](https://github.com/hyperledger-bevel/bevel/blob/main/platforms/hyperledger-fabric/charts/fabric-chaincode-install), please feel free to open an issue or submit a pull request on the [project's GitHub repository](https://github.com/hyperledger-bevel/bevel).
 
 
 <a name = "license"></a>

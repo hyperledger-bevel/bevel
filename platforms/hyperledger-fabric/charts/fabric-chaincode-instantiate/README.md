@@ -21,7 +21,7 @@
 <a name = "instantiate-chaincode-hyperledger-fabric-deployment-helm-chart"></a>
 ## Instantiate Chaincode Hyperledger Fabric Deployment Helm Chart
 ---
-A [Helm chart](https://github.com/hyperledger/bevel/blob/develop/platforms/hyperledger-fabric/charts/fabric-chaincode-instantiate) for chaincode instantiation on a peer.
+A [Helm chart](https://github.com/hyperledger-bevel/bevel/blob/develop/platforms/hyperledger-fabric/charts/fabric-chaincode-instantiate) for chaincode instantiation on a peer.
 
 
 <a name = "prerequisites"></a>
@@ -61,7 +61,7 @@ fabric-chaincode-instantiate/
 <a name = "configuration"></a>
 ## Configuration
 ---
-The [values.yaml](https://github.com/hyperledger/bevel/blob/develop/platforms/hyperledger-fabric/charts/fabric-chaincode-instantiate/values.yaml) file contains configurable values for the Helm chart. We can modify these values according to the deployment requirements. Here are some important configuration options:
+The [values.yaml](https://github.com/hyperledger-bevel/bevel/blob/develop/platforms/hyperledger-fabric/charts/fabric-chaincode-instantiate/values.yaml) file contains configurable values for the Helm chart. We can modify these values according to the deployment requirements. Here are some important configuration options:
 
 ### Metadata
 
@@ -127,7 +127,7 @@ The [values.yaml](https://github.com/hyperledger/bevel/blob/develop/platforms/hy
 
 To deploy the fabric-chaincode-instantiate Helm chart, follow these steps:
 
-1. Modify the [values.yaml](https://github.com/hyperledger/bevel/blob/main/platforms/hyperledger-fabric/charts/fabric-chaincode-instantiate/values.yaml) file to set the desired configuration values.
+1. Modify the [values.yaml](https://github.com/hyperledger-bevel/bevel/blob/main/platforms/hyperledger-fabric/charts/fabric-chaincode-instantiate/values.yaml) file to set the desired configuration values.
 2. Run the following Helm command to install the chart:
     ```
     $ helm repo add bevel https://hyperledger.github.io/bevel/
@@ -153,7 +153,7 @@ Replace `<namespace>` with the actual namespace where the Job was created. This 
 ## Updating the Deployment
 ---
 
-If we need to update the deployment with new configurations or changes, modify the same [values.yaml](https://github.com/hyperledger/bevel/blob/main/platforms/hyperledger-fabric/charts/fabric-chaincode-instantiate/values.yaml) file with the desired changes and run the following Helm command:
+If we need to update the deployment with new configurations or changes, modify the same [values.yaml](https://github.com/hyperledger-bevel/bevel/blob/main/platforms/hyperledger-fabric/charts/fabric-chaincode-instantiate/values.yaml) file with the desired changes and run the following Helm command:
 ```
 $ helm upgrade <release-name> ./fabric-chaincode-instantiate
 ```
@@ -174,7 +174,7 @@ Replace `<release-name>` with the name of the release. This command will remove 
 <a name = "contributing"></a>
 ## Contributing
 ---
-If you encounter any bugs, have suggestions, or would like to contribute to the [Instantiate Chaincode Hyperledger Fabric Deployment Helm Chart](https://github.com/hyperledger/bevel/blob/main/platforms/hyperledger-fabric/charts/fabric-chaincode-instantiate), please feel free to open an issue or submit a pull request on the [project's GitHub repository](https://github.com/hyperledger/bevel).
+If you encounter any bugs, have suggestions, or would like to contribute to the [Instantiate Chaincode Hyperledger Fabric Deployment Helm Chart](https://github.com/hyperledger-bevel/bevel/blob/main/platforms/hyperledger-fabric/charts/fabric-chaincode-instantiate), please feel free to open an issue or submit a pull request on the [project's GitHub repository](https://github.com/hyperledger-bevel/bevel).
 
 
 <a name = "license"></a>

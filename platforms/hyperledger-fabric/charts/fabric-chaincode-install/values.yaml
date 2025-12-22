@@ -104,7 +104,7 @@ chaincode:
     hostname: "github.com"
     #Provide the chaincode remote git repository URL
     #Eg. url: ssh://git@innersource.accenture.com/dlta/dlt-ansible.git
-    url: "github.com/hyperledger/bevel-samples.git"
+    url: "github.com/hyperledger-bevel/bevel-samples.git"
     #Provide the chaincode remote git repo branch to be cloned for chaincode
     #Eg. branch: develop
     branch: main

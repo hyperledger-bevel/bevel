@@ -20,7 +20,7 @@
   loop: "{{ participants }}"
   loop_control:
     loop_var: participant
-  when: participant.type == 'creator'
+  when: participant.org_status == 'existing'
 
 # Start the cli, configure and download the configuration block
 - name: Call nested_fetch_role for the peer
@@ -37,4 +37,4 @@
   loop: "{{ participants }}"
   loop_control:
     loop_var: participantx
-  when: participantx.type == 'creator'
+  when: participantx.org_status == 'existing'

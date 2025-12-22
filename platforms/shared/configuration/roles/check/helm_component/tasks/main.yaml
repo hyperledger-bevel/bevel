@@ -23,12 +23,11 @@
     context: "{{ kubernetes.context }}"
     label_selectors:
       - "app = {{ component_name }}"
-  register: component_data
+  register: job_data
   retries: "{{ network.env.retry_count }}"
   delay: 30
-  until: component_data.resources|length > 0 and ((component_data.resources[0].status.phase is defined and component_data.resources[0].status.phase == "Succeeded") or (component_data.resources[0].status.succeeded is defined and component_data.resources[0].status.succeeded == 1))
+  until: job_data.resources|length > 0 and ((job_data.resources[0].status.phase is defined and job_data.resources[0].status.phase == "Succeeded") or (job_data.resources[0].status.succeeded is defined and job_data.resources[0].status.succeeded == 1))
   when: component_type == "Job"
-  register: job_retry_result
 
 # Output debug message if Job creation fails after retries
 - name: Debug information for job {{ component_name }} failure
@@ -43,7 +42,7 @@
       Run 'kubectl describe job -n {{ namespace }} -l app={{ component_name }}' for more details.
   when:
     - component_type == "Job"
-    - job_retry_result.failed is defined and job_retry_result.failed
+    - job_data.failed is defined and job_data.failed
 
 # one time job check and registers the result variable
 - name: "Check for job {{ component_name }} in {{ namespace }}"
@@ -80,7 +79,6 @@
   delay: "{{ delay | default(30) }}"
   until: component_data.resources|length > 0
   when: component_type == "Pod"
-  register: pod_retry_result
 
 # Output debug message if Pod creation fails after retries
 - name: Debug information for pod {{ component_name }} failure
@@ -95,7 +93,7 @@
       Run 'kubectl describe pod -n {{ namespace }} -l {{ label_selectors | join(",") }}' for detailed events.
   when:
     - component_type == "Pod"
-    - pod_retry_result.failed is defined and pod_retry_result.failed
+    - component_data.failed is defined and component_data.failed
   
 # Print a warning message if job is still running/pending after retries but not failed
 - name: Status update for job {{ component_name }}
@@ -103,6 +101,6 @@
     msg: "Job {{ component_name }} in namespace {{ namespace }} is still running or pending. Consider increasing retry_count or checking for issues in the job configuration."
   when:
     - component_type == "Job"
-    - job_retry_result.failed is not defined or not job_retry_result.failed
-    - component_data.resources|length > 0 
-    - (component_data.resources[0].status.phase is not defined or component_data.resources[0].status.phase != "Succeeded") and (component_data.resources[0].status.succeeded is not defined or component_data.resources[0].status.succeeded != 1)
+    - job_data.failed is not defined or not job_data.failed
+    - job_data.resources|length > 0 
+    - (job_data.resources[0].status.phase is not defined or job_data.resources[0].status.phase != "Succeeded") and (job_data.resources[0].status.succeeded is not defined or job_data.resources[0].status.succeeded != 1)

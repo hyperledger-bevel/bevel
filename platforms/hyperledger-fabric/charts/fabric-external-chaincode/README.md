@@ -21,7 +21,7 @@
 <a name = "external-chaincode-hyperledger-fabric-deployment-helm-chart"></a>
 ## External Chaincode Hyperledger Fabric Deployment Helm Chart
 ---
-A [Helm chart](https://github.com/hyperledger/bevel/blob/develop/platforms/hyperledger-fabric/charts/fabric-external-chaincode) for external chaincode server deployment.
+A [Helm chart](https://github.com/hyperledger-bevel/bevel/blob/develop/platforms/hyperledger-fabric/charts/fabric-external-chaincode) for external chaincode server deployment.
 
 
 <a name = "prerequisites"></a>
@@ -63,7 +63,7 @@ fabric-external-chaincode/
 <a name = "configuration"></a>
 ## Configuration
 ---
-The [values.yaml](https://github.com/hyperledger/bevel/blob/develop/platforms/hyperledger-fabric/charts/fabric-external-chaincode/values.yaml) file contains configurable values for the Helm chart. We can modify these values according to the deployment requirements. Here are some important configuration options:
+The [values.yaml](https://github.com/hyperledger-bevel/bevel/blob/develop/platforms/hyperledger-fabric/charts/fabric-external-chaincode/values.yaml) file contains configurable values for the Helm chart. We can modify these values according to the deployment requirements. Here are some important configuration options:
 
 ### Metadata
 
@@ -118,7 +118,7 @@ The [values.yaml](https://github.com/hyperledger/bevel/blob/develop/platforms/hy
 
 To deploy the fabric-external-chaincode Helm chart, follow these steps:
 
-1. Modify the [values.yaml](https://github.com/hyperledger/bevel/blob/main/platforms/hyperledger-fabric/charts/fabric-external-chaincode/values.yaml) file to set the desired configuration values.
+1. Modify the [values.yaml](https://github.com/hyperledger-bevel/bevel/blob/main/platforms/hyperledger-fabric/charts/fabric-external-chaincode/values.yaml) file to set the desired configuration values.
 2. Run the following Helm command to install the chart:
     ```
     $ helm repo add bevel https://hyperledger.github.io/bevel/
@@ -144,7 +144,7 @@ Replace `<namespace>` with the actual namespace where the deployment was created
 ## Updating the Deployment
 ---
 
-If we need to update the deployment with new configurations or changes, modify the same [values.yaml](https://github.com/hyperledger/bevel/blob/main/platforms/hyperledger-fabric/charts/fabric-external-chaincode/values.yaml) file with the desired changes and run the following Helm command:
+If we need to update the deployment with new configurations or changes, modify the same [values.yaml](https://github.com/hyperledger-bevel/bevel/blob/main/platforms/hyperledger-fabric/charts/fabric-external-chaincode/values.yaml) file with the desired changes and run the following Helm command:
 ```
 $ helm upgrade <release-name> ./fabric-external-chaincode
 ```
@@ -165,7 +165,7 @@ Replace `<release-name>` with the name of the release. This command will remove 
 <a name = "contributing"></a>
 ## Contributing
 ---
-If you encounter any bugs, have suggestions, or would like to contribute to the [External Chaincode Hyperledger Fabric Deployment Helm Chart](https://github.com/hyperledger/bevel/blob/main/platforms/hyperledger-fabric/charts/fabric-external-chaincode), please feel free to open an issue or submit a pull request on the [project's GitHub repository](https://github.com/hyperledger/bevel).
+If you encounter any bugs, have suggestions, or would like to contribute to the [External Chaincode Hyperledger Fabric Deployment Helm Chart](https://github.com/hyperledger-bevel/bevel/blob/main/platforms/hyperledger-fabric/charts/fabric-external-chaincode), please feel free to open an issue or submit a pull request on the [project's GitHub repository](https://github.com/hyperledger-bevel/bevel).
 
 
 <a name = "license"></a>

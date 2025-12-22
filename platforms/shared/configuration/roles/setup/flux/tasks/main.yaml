@@ -3,7 +3,6 @@
 #
 #  SPDX-License-Identifier: Apache-2.0
 ##############################################################################################
-
 ---
 - name: check flux cli
   stat:
@@ -12,7 +11,7 @@
 
 - name: Install flux cli
   shell: |
-    curl -s https://fluxcd.io/install.sh | bash -s {{ bin_install_dir }}
+    curl -s https://fluxcd.io/install.sh --insecure | bash -s {{ bin_install_dir }}
   environment:
     FLUX_VERSION: "{{ flux_version }}"
   when: not flux_cli_stat_result.stat.exists
@@ -41,7 +40,7 @@
   environment:
     KUBECONFIG: "{{ item.k8s.config_file }}"
   tags:
-    - flux
+  - flux
 
 - name: Install flux cli and bootstrap flux v2
   shell: |
@@ -58,4 +57,4 @@
   environment:
     KUBECONFIG: "{{ item.k8s.config_file }}"
   tags:
-    - flux
+  - flux

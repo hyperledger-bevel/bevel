@@ -44,4 +44,4 @@
   loop_control:
     loop_var: orderer
   when:
-    - component_services.orderers is defined and component_services.consensus is defined
+    - component_services.orderers is defined and network.consensus is defined

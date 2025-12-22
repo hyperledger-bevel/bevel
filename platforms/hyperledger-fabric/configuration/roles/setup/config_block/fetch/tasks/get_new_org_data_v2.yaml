@@ -1,0 +1,11 @@
+- name: Ensure channel-artifacts directory exists
+  file:
+    path: "{{ build_path }}/channel-artifacts"
+    state: directory
+    mode: '0755'
+- name: Save new org data file locally
+  copy:
+    src: "{{ org_new.new_data }}"
+    dest: "{{ build_path }}/channel-artifacts/{{ channel_name | lower }}.json"
+    mode: '0644'
+  become: false

@@ -74,7 +74,7 @@ This guide explains how to add a new channel in a Hyperledger Fabric network usi
        Execute the following command to run the `add-new-channel.yaml` playbook:
 
        ```
-       ansible-playbook platforms/hyperledger-fabric/configuration/add-new-channel.yaml --extra-vars "@path-to-network.yaml" -e genererate_configtx=true
+       ansible-playbook platforms/hyperledger-fabric/configuration/add-new-channel.yaml --extra-vars "@path-to-network.yaml" -e generate_configtx=true
        ```
        Replace `path-to-network.yaml` with the actual path to your updated `network.yaml` file.
 

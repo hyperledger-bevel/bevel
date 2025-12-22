@@ -31,7 +31,7 @@ peer:
 {% if provider == 'none' %}
   address: {{ peer_name }}.{{ component_ns }}:7051
 {% else %}
-  address: {{ peer_adress }}
+  address: {{ peer_address }}
 {% endif %}
   localMspId: {{ org.name | lower }}MSP
   logLevel: debug

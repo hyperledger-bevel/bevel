@@ -30,15 +30,14 @@
     peer_name: "{{ peer.name }}"
     component_ns: "{{ participant.name | lower}}-net"
     vault: "{{ org.vault }}"
-    channel_name: "{{ channel_name }}"
     storage_class: "{{ participant.name | lower }}-bevel-storageclass"
-    release_dir: "./build"
+    release_dir: "./build/{{ participant.name }}"
   when: existing_cli.resources|length == 0
 
 # Start the cli with valuefile generated above
 - name: "Start cli {{peer.name}}-{{ org.name }}"
   shell: |
-    KUBECONFIG={{ org.k8s.config_file }} helm upgrade --install -f ./build/{{ participant.name }}/existing_peer_cli_job.yaml {{ peer.name }}-{{ participant.name }}-cli {{playbook_dir}}/../../../{{org.gitops.chart_source}}/fabric-cli
+    KUBECONFIG={{ org.k8s.config_file }} helm upgrade --install -n {{ participant.name | lower}}-net -f ./build/{{ participant.name }}/existing_peer_cli_job.yaml {{ peer.name }}-{{ participant.name }}-cli {{playbook_dir}}/../../../{{org.gitops.chart_source}}/fabric-cli
   when: existing_cli.resources|length == 0
 
 # Wait for fabric cli
@@ -70,5 +69,5 @@
 # Delete the cli   
 - name: "Delete cli {{ peer.name }}-{{ participant.name }}-cli"
   shell: |
-    KUBECONFIG={{ org.k8s.config_file }} helm uninstall {{ peer.name }}-{{ participant.name }}-cli
+    KUBECONFIG={{ org.k8s.config_file }} helm uninstall {{ peer.name }}-{{ participant.name }}-cli -n {{ participant.name | lower }}-net
   when: existing_cli.resources|length == 0

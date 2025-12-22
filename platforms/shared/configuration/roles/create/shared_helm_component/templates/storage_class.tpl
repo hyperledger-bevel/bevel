@@ -1,6 +1,7 @@
 global:
   cluster:
     provider: "{{ cloud_provider }}"
+nameOverride: {{ sc_name }}
 reclaimPolicy: Delete
 volumeBindingMode: Immediate
 {% if cloud_provider == "aws" %}

@@ -51,7 +51,7 @@
     name: k8_component
   vars:
     component_type_name: "{{ org.name | lower }}"
-    component_type: "existing_peer_cli_job"    
+    component_type: "existing_peer_cli_job"
     component_name: "cli-{{ chaincode.name }}-{{ org.name }}-{{ peer.name }}"
     peer_name: "{{ peer.name }}"
     component_ns: "{{ org.name | lower }}-net"

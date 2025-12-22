@@ -1,0 +1,192 @@
+{{- if .Values.chaincode.tls }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-certs
+  labels:
+    app.kubernetes.io/name: {{ include "fabric-external-chaincode.name" . }}-certs
+    app.kubernetes.io/component: ca-tools
+    app.kubernetes.io/part-of: {{ include "fabric-external-chaincode.fullname" . }}
+    app.kubernetes.io/namespace: {{ .Release.Namespace }}
+    app.kubernetes.io/release: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: helm
+  annotations:
+    helm.sh/hook-weight: "0"
+    helm.sh/hook: "pre-install,pre-upgrade"
+    helm.sh/hook-delete-policy: "before-hook-creation,hook-succeeded"
+spec:
+  backoffLimit: 5
+  completions: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "fabric-external-chaincode.name" . }}
+        app.kubernetes.io/component: ca-tools
+        app.kubernetes.io/part-of: {{ include "fabric-external-chaincode.fullname" . }}
+        app.kubernetes.io/namespace: {{ .Release.Namespace }}
+        app.kubernetes.io/release: {{ .Release.Name }}
+        app.kubernetes.io/managed-by: helm
+    spec:
+      serviceAccountName: {{ .Values.global.serviceAccountName }}
+      restartPolicy: "OnFailure"
+      {{- if .Values.image.pullSecret }}
+      imagePullSecrets:
+        - name: {{ .Values.image.pullSecret }}
+      {{- end }}
+      volumes:
+      - name: certificates
+        emptyDir:
+          medium: Memory
+      - name: scripts-volume
+        configMap:
+          name: bevel-vault-script
+      - name: package-manager
+        configMap:
+          name: package-manager
+      - name: chaincode-scripts
+        configMap:
+          name: {{ .Release.Name }}-scripts
+          defaultMode: 0775
+      - name: store-vault-scripts
+        configMap:
+          name: {{ .Release.Name }}-savecerts
+          defaultMode: 0775
+      containers:
+        - name: generate-certs
+          image: {{ .Values.image.catools }}
+          imagePullPolicy: IfNotPresent
+          env:
+          - name: COMPONENT_NAME
+            value: {{ .Release.Namespace }}
+          - name: CHAINCODE_NAME
+            value: {{ .Values.chaincode.name }}
+          - name: CHAINCODE_VERSION
+            value: "{{ .Values.chaincode.version }}"
+          - name: REFRESH_CERT_VALUE
+            value: "{{ .Values.certs.refreshCertValue }}"
+          - name: OUTPUT_PATH
+            value: "/crypto-config"
+          - name: ORG_NAME
+            value: "{{ .Values.certs.orgData.orgName }}"
+          {{- if eq .Values.global.vault.type "hashicorp" }}
+          - name: VAULT_ADDR
+            value: {{ .Values.global.vault.address }}
+          - name: VAULT_APP_ROLE
+            value: {{ .Values.global.vault.role }}
+          - name: KUBERNETES_AUTH_PATH
+            value: {{ .Values.global.vault.authPath }}
+          - name: VAULT_TYPE
+            value: {{ .Values.global.vault.type }}
+          - name: VAULT_SECRET_ENGINE
+            value: "{{ .Values.global.vault.secretEngine }}"
+          - name: VAULT_SECRET_PREFIX
+            value: "{{ .Values.global.vault.secretPrefix }}"
+          {{- end }}
+          command: ["sh", "-c"]
+          args:
+            - |
+              . /scripts/package-manager.sh
+              # Define the packages to install
+              packages_to_install="curl jq"
+              install_packages "$packages_to_install"
+              # Download kubectl binary
+              curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.27.0/bin/linux/amd64/kubectl;
+              chmod u+x kubectl && mv kubectl /usr/local/bin/kubectl;
+{{- if (eq .Values.global.vault.type "hashicorp") }}
+              . /scripts/bevel-vault.sh
+              echo "Getting vault Token..."
+              vaultBevelFunc "init"
+{{- end }}
+              # Get the CA cert from Kubernetes secret
+              mkdir -p ${OUTPUT_PATH}/ca
+              kubectl get secret --namespace {{ .Release.Namespace }} fabric-ca-server-certs >/dev/null 2>&1
+              if [ $? -eq 0 ]; then
+                LOOKUP_SECRET_RESPONSE=$(kubectl get secret -n {{ .Release.Namespace }} fabric-ca-server-certs -o jsonpath='{.data}');
+                echo "${LOOKUP_SECRET_RESPONSE}" | jq -j ".\"tls.crt\"" | base64 -d > ${OUTPUT_PATH}/ca/ca.${COMPONENT_NAME}-cert.pem;
+              else
+{{- if (eq .Values.global.vault.type "hashicorp") }}
+                vaultBevelFunc "readJson" "${VAULT_SECRET_ENGINE}/${VAULT_SECRET_PREFIX}/ca"
+                if [ "$SECRETS_AVAILABLE" = "yes" ]; then
+                  # Get ca cert
+                  ca_cert=$(echo ${VAULT_SECRET} | jq -r ".rootca_pem")
+                  echo "${ca_cert}" > ${OUTPUT_PATH}/ca/ca.${COMPONENT_NAME}-cert.pem
+                  ca_key=$(echo ${VAULT_SECRET} | jq -r ".rootca_key")
+                  echo "${ca_key}" > ${OUTPUT_PATH}/ca/ca.${COMPONENT_NAME}.key
+                  # Also create the k8s secret
+                  kubectl create secret tls ${key} --namespace ${COMPONENT_NAME} \
+                    --cert=${OUTPUT_PATH}/ca/ca.${COMPONENT_NAME}-cert.pem \
+                    --key=${OUTPUT_PATH}/ca/ca.${COMPONENT_NAME}.key
+                else
+                  echo "CA certs not found in Vault"
+                  exit 1
+                fi;
+{{- else }}
+                echo "CA certs not found in Kubernetes secret"
+                exit 1
+{{- end }}
+              fi
+              echo "CA certificate saved locally."
+              checkSecrets() {
+                key=$1
+                kubectl get secret --namespace {{ .Release.Namespace }} ${key} >/dev/null 2>&1
+                if [ $? -eq 0 ]; then
+                  # Secret found
+                  touch /crypto-config/${key}-exists
+                else
+{{- if (eq .Values.global.vault.type "hashicorp") }}
+                  #Read if secret exists in Vault 
+                  vaultBevelFunc 'readJson' "${VAULT_SECRET_ENGINE}/${VAULT_SECRET_PREFIX}/chaincodes/${key}"
+                  if [ "$SECRETS_AVAILABLE" = "yes" ]; then
+                    touch /crypto-config/${key}-exists
+                  fi;
+{{- else }}
+                  echo "Secret $key does not exist."
+{{- end }}
+                fi
+              }
+              # Check if secrets already exist
+              checkSecrets ${CHAINCODE_NAME}-${CHAINCODE_VERSION}-tls
+              checkSecrets ${ORG_NAME}-${CHAINCODE_NAME}-tls
+
+              echo "Starting certificate generation."
+              if [ ! -e /crypto-config/${CHAINCODE_NAME}-${CHAINCODE_VERSION}-tls-exists ] || [ "$REFRESH_CERT_VALUE" = "true" ]; then
+                # Generate crypto material for chaincode server
+                echo "Need to execute scripts for chaincode ${CHAINCODE_NAME}"
+                cd /root/ca-tools/org 
+                ./generate-crypto-chaincode-server.sh
+                # Save the generated certificates
+                cd /scripts/peer
+                ./store-vault-server.sh
+              fi
+              
+              # Generate crypto material for chaincode client
+              cd /root/ca-tools/org
+              if [ ! -e /crypto-config/${ORG_NAME}-${CHAINCODE_NAME}-tls-exists ] || [ "$REFRESH_CERT_VALUE" = "true" ]; then
+                ./generate-crypto-chaincode-peer.sh
+                # Save the generated certificates for peers and users
+                cd /scripts/peer
+                ./store-vault-chaincode.sh
+              fi;
+              echo "Certificate generation complete."
+          volumeMounts:
+          - name: certificates
+            mountPath: /crypto-config
+          - name: chaincode-scripts
+            mountPath: /root/ca-tools/org/generate-crypto-chaincode-peer.sh
+            subPath: generate-crypto-chaincode-peer.sh
+          - name: chaincode-scripts
+            mountPath: /root/ca-tools/org/generate-crypto-chaincode-server.sh
+            subPath: generate-crypto-chaincode-server.sh
+          - name: package-manager
+            mountPath: /scripts/package-manager.sh
+            subPath: package-manager.sh
+          - name: scripts-volume
+            mountPath: /scripts/bevel-vault.sh
+            subPath: bevel-vault.sh
+          - name: store-vault-scripts
+            mountPath: /scripts/peer/store-vault-server.sh
+            subPath: store-vault-server.sh
+          - name: store-vault-scripts
+            mountPath: /scripts/peer/store-vault-chaincode.sh
+            subPath: store-vault-chaincode.sh
+{{- end }}

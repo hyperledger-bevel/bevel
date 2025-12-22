@@ -17,107 +17,7 @@
       file:
         path: "./build"
         state: absent
-    # This role updates the peers with updated core.yaml
-    - name: Create all peers with core.yaml
-      include_role:
-        name: "create/peers"
-      vars:
-        build_path: "./build"
-        namespace: "{{ item.name | lower}}-net"
-        component_type: "{{ item.type | lower}}"
-        component_services: "{{ item.services }}"
-        vault: "{{ item.vault }}"
-        git_protocol: "{{ item.gitops.git_protocol }}"
-        git_url: "{{ item.gitops.git_url }}"
-        git_branch: "{{ item.gitops.branch }}"
-        docker_url: "{{ network.docker.url }}"
-        charts_dir: "{{ item.gitops.chart_source }}"
-        values_dir: "{{playbook_dir}}/../../../{{item.gitops.release_dir}}/{{ item.name | lower }}"
-      loop: "{{ network['organizations'] }}"
-      when: item.type == 'peer'
-
-    ############################################################################################
-    # Check if CA server is available
-    - name: "Check for the CA server running in {{ item.name | lower }}-net"
-      include_role:
-        name: "{{ playbook_dir }}/../../shared/configuration/roles/check/helm_component"
-      vars:
-        component_name: "{{ component_services.ca.name }}-tools"
-        component: "{{ item.name | lower}}"
-        component_type: "Pod"
-        component_services: "{{ item.services }}"
-        namespace: "{{ item.name | lower }}-net"
-        kubernetes: "{{ item.k8s }}"
-        label_selectors:
-          - name = {{ component_name }}
-        vault: "{{ item.vault }}"
-        ca: "{{ item.services.ca }}"
-      loop: "{{ network['organizations'] }}"
-      when:
-        - item.type == 'peer'
-
-    ############################################################################################
-    # Check if CA CLI is available
-    - name: "Check for the CA tools to be running in {{ item.name | lower }}-net"
-      include_role:
-        name: "{{ playbook_dir }}/../../shared/configuration/roles/check/helm_component"
-      vars:
-        component_name: "{{ component_services.ca.name }}-tools"
-        component: "{{ item.name | lower}}"
-        component_type: "Pod"
-        component_services: "{{ item.services }}"
-        namespace: "{{ item.name | lower }}-net"
-        kubernetes: "{{ item.k8s }}"
-        label_selectors:
-          - name = {{ component_name }}
-        vault: "{{ item.vault }}"
-        ca: "{{ item.services.ca }}"
-      loop: "{{ network['organizations'] }}"
-      when:
-        - item.type == 'peer'
-
-    ############################################################################################
-    # This task generates the crypto material by executing the generate-crypto-peer-chaincode.sh script 
-    - name: Generate crypto material for peer to interact with external chaincode servers
-      include_role:
-        name: "create/chaincode/peer_certs"
-      vars:
-        component_name: "{{ item.name | lower }}-net"
-        component_type: "{{ item.type | lower }}"
-        org_name: "{{ item.name | lower }}"
-        services: "{{ item.services }}"
-        subject: "{{ item.subject }}"
-        cert_subject: "{{ item.subject | regex_replace('/', ';') | regex_replace(',', '/') | regex_replace(';', ',') }}" # replace , to / and / to , for certpath
-        kubernetes: "{{ item.k8s }}"
-        vault: "{{ item.vault }}"
-        users: "{{ item.users }}"
-        ca_server_url: "{{ item.ca_data.url }}"
-        setup_user_env: true
-      loop: "{{ network['organizations'] }}"
-      when: 
-        - item.type == 'peer'
-
-    ############################################################################################
-    # This task generates the crypto material by executing the generate-crypto-chaincode-server.sh script
-    - name: Generate crypto material for external chaincode servers
-      include_role:
-        name: "create/chaincode/server_certs"
-      vars:
-        component_name: "{{ item.name | lower }}-net"
-        component_type: "{{ item.type | lower }}"
-        org_name: "{{ item.name | lower }}"
-        services: "{{ item.services }}"
-        subject: "{{ item.subject }}"
-        cert_subject: "{{ item.subject | regex_replace('/', ';') | regex_replace(',', '/') | regex_replace(';', ',') }}" # replace , to / and / to , for certpath
-        kubernetes: "{{ item.k8s }}"
-        vault: "{{ item.vault }}"
-        users: "{{ item.users }}"
-        ca_server_url: "{{ item.ca_data.url }}"
-        setup_user_env: true
-      loop: "{{ network['organizations'] }}"
-      when: 
-        - item.type == 'peer'
-
+        
     ############################################################################################
     # This task installs the external chaincode on the desired peers
     - name: Install external chaincode
@@ -126,83 +26,33 @@
       vars:
         docker_url: "{{ network.docker.url }}"
         envspace: "{{ network.env.type }}"
-        name: "{{ item.name | lower}}"
-        namespace: "{{ item.name | lower}}-net"
-        component_type: "{{ item.type | lower}}"
-        component_peers: "{{ item.services.peers }}"
-        org_name: "{{ item.name | lower }}"
-        org_ns: "{{ item.name | lower }}-net"
-        kubernetes: "{{ item.k8s }}"
-        vault: "{{ item.vault }}"
-        peers: "{{ item.services.peers }}"
-        git_url: "{{ item.gitops.git_url }}"
-        git_branch: "{{ item.gitops.branch }}"
-        charts_dir: "{{ item.gitops.chart_source }}"
-        values_dir: "{{playbook_dir}}/../../../{{item.gitops.release_dir}}/{{ item.name | lower }}"
+        name: "{{ org.name | lower }}"
+        namespace: "{{ org.name | lower }}-net"
+        component_subject: "{{ org.subject }}"
+        component_peers: "{{ org.services.peers }}"
+        kubernetes: "{{ org.k8s }}"
+        vault: "{{ org.vault }}"
+        git_url: "{{ org.gitops.git_url }}"
+        git_branch: "{{ org.gitops.branch }}"
+        charts_dir: "{{ org.gitops.chart_source }}"
+        values_dir: "{{playbook_dir}}/../../../{{org.gitops.release_dir}}/{{ org.name | lower }}"
       loop: "{{ network['organizations'] }}"
-      when: 
-        - item.type == 'peer'
-        - item.org_status == 'new'
+      loop_control:
+        loop_var: org
+      when:
+        - org.services.peers is defined
 
     ############################################################################################
-    # This task deploys the external chaincode server for desired org
-    - name: Deploy external chaincode server
+    # This task completes the lifecyle of installed chaincode on the peers
+    - name: "Complete chaincode lifecycle"
       include_role:
-        name: "create/external_chaincode_server"
-      vars:
-        docker_url: "{{ network.docker.url }}"
-        name: "{{ item.name | lower}}"
-        namespace: "{{ item.name | lower}}-net"
-        component_type: "{{ item.type | lower}}"
-        component_peers: "{{ item.services.peers }}"
-        org_name: "{{ item.name | lower }}"
-        org_ns: "{{ item.name | lower }}-net"
-        kubernetes: "{{ item.k8s }}"
-        vault: "{{ item.vault }}"
-        peers: "{{ item.services.peers }}"
-        git_url: "{{ item.gitops.git_url }}"
-        git_branch: "{{ item.gitops.branch }}"
-        charts_dir: "{{ item.gitops.chart_source }}"
-        values_dir: "{{playbook_dir}}/../../../{{item.gitops.release_dir}}/{{ item.name | lower }}"
-      loop: "{{ network['organizations'] }}"
-      when: 
-        - item.type == 'peer' 
-        - item.org_status == 'new'
-
-    ############################################################################################
-    # This task approves desired installed chaincode on the peers
-    - name: "Approve chaincode"
-      include_role:
-        name: "create/chaincode/approve"
+        name: "create/chaincode/lifecycle"
       vars:
         participants: "{{ item.participants }}"
+        endorsers: "{{ item.endorsers }}"
         docker_url: "{{ network.docker.url }}"
       loop: "{{ network['channels'] }}"
       when: participants is defined and '2.' in network.version
-
-    ############################################################################################
-    # This task commits the desired approved chaincode
-    - name: Commit chaincode
-      include_role:
-        name: "create/chaincode/commit"
-      vars:
-        participants: "{{ item.participants }}"
-        docker_url: "{{ network.docker.url }}"
-        approvers: "{{ item.endorsers }}"
-      loop: "{{ network['channels'] }}"
-      when: add_new_org == 'false' and '2.' in network.version
-
-    # This task invokes chaincode after the chaincode has been commited in v2 and
-    # after chaincode installation for the new organization to be added in existing network
-    - name: Invoke chaincode
-      include_role:
-        name: "create/chaincode/invoke"
-      vars:
-        participants: "{{ item.participants }}"
-        docker_url: "{{ network.docker.url }}"
-        approvers: "{{ item.endorsers | default('', true) }}"
-      loop: "{{ network['channels'] }}"
-      when: add_new_org == 'true' or '2.' in network.version    
 
   vars: #These variables can be overriden from the command line
     privilege_escalate: false           #Default to NOT escalate to root privledges

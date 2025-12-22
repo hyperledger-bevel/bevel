@@ -35,8 +35,7 @@ network:
     password: "docker_password"
 
   # Remote connection information for orderer (will be blank or removed for orderer hosting organization)
-  consensus:
-    name: raft
+  consensus: raft
   orderers:
     - orderer:
       type: orderer
@@ -288,9 +287,6 @@ network:
           grpc:
             port: 7054
 
-        consensus:
-          name: raft
-
         orderers:
         # This sample has multiple orderers as an example.
         # You can use a single orderer for most production implementations.
@@ -298,21 +294,18 @@ network:
         - orderer:
           name: orderer1
           type: orderer
-          consensus: raft
           grpc:
             port: 7050
           ordererAddress: orderer1.supplychain-net.org1proxy.blockchaincloudpoc.com:443
         - orderer:
           name: orderer2
           type: orderer
-          consensus: raft
           grpc:
             port: 7050
           ordererAddress: orderer2.supplychain-net.org1proxy.blockchaincloudpoc.com:443
         - orderer:
           name: orderer3
           type: orderer
-          consensus: raft
           grpc:
             port: 7050
           ordererAddress: orderer3.supplychain-net.org1proxy.blockchaincloudpoc.com:443

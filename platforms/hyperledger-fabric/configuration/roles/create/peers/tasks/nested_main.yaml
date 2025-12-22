@@ -2,8 +2,8 @@
 - name: Remove existing value file for {{ peer.name }}
   shell: |
     rm -f {{ values_dir }}/{{ org.name | lower }}/values-{{ peer.name }}.yaml
-  when: 
-    - add_peer is not defined or add_peer == 'false'
+  when:
+  - add_peer is not defined or add_peer == 'false'
 
 # Create the certs directory if it does not exist
 - name: Create the certs directory if it does not exist
@@ -16,8 +16,8 @@
   shell: |
     cat {{ peer.configpath }} > {{playbook_dir}}/../../../{{ charts_dir }}/fabric-peernode/conf/default_core.yaml
   register: core_yaml_file
-  when: 
-    - peer.configpath is defined
+  when:
+  - peer.configpath is defined
 
 # Get orderer tls cacert from configmap
 - name: check crypto scripts already exists
@@ -29,7 +29,7 @@
   register: crypto_scripts_data
 
 # Get orderer tls cacert from configmap
-- name: Get orderer tls cacert from config map 
+- name: Get orderer tls cacert from config map
   kubernetes.core.k8s_info:
     kubeconfig: "{{ kubernetes.config_file }}"
     kind: ConfigMap
@@ -49,19 +49,25 @@
         namespace: "{{ org.name | lower }}-net"
       data:
         cacert: "{{ tls_cert_data.resources[0].data['cacert'] }}"
-  when: org.orderer_org != org.name
+  when:
+  - org.orderer_org != org.name
+  - tls_cert_data.resources is defined
+  - tls_cert_data.resources | length > 0
 
-# Set Variable sc_name
-- name: "Set Variable sc_name"
-  set_fact:
-    sc_name: "storage-{{ peer.name }}"
- 
-- name: Get information about StorageClasses
-  kubernetes.core.k8s_info:
-    kind: StorageClass
-    api_version: storage.k8s.io/v1
-    namespace: default
-  register: storage_classes_info
+- name: Create new ConfigMap with orderer certificate from local folder
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubernetes.config_file }}"
+    definition:
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: "{{ peer.name }}-orderer-tls-cacert"
+        namespace: "{{ org.name | lower }}-net"
+      data:
+        cacert: "{{ lookup('file', '{{ first_orderer.certificate }}')}}"
+  when:
+  - org.orderer_org != org.name
+  - tls_cert_data.failed or tls_cert_data.resources | length == 0
 
 # Create Value files for Organization Peers
 - name: Create Value files for Organization Peers
@@ -78,7 +84,6 @@
     user_list: "{{ org.users | default('') }}"
     add_peer_value: "{{ add_peer | default('false') }}"
     enabled_cli: "{{ true if peer.cli == 'enabled' else false }}"
-    sc_enabled: "{{ false if storage_classes_info.resources | selectattr('metadata.name', 'equalto', sc_name) | list else true }}"
     create_configmaps: "{{ true if (first_peer == peer.name) and (crypto_scripts_data.resources | length == 0) else false }}"
-  when: 
-    - peer.peerstatus is not defined or peer.peerstatus == 'new'
+  when:
+  - peer.peerstatus is not defined or peer.peerstatus == 'new'

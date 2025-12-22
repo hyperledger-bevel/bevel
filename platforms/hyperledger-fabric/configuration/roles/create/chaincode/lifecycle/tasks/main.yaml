@@ -1,0 +1,21 @@
+##############################################################################################
+#  Copyright Sownak Roy. All Rights Reserved.
+#
+#  SPDX-License-Identifier: Apache-2.0
+##############################################################################################
+
+#############################################################################################
+# This role creates value file for the deployment of chaincode lifecycle
+#############################################################################################
+
+---
+# Create value file for chaincode lifecycle
+- name: "Create value file for chaincode lifecycle"
+  include_tasks: nested_lifecycle.yaml
+  vars:
+    org_query: "organizations[?name=='{{ participant.name }}']"
+    org: "{{ network | json_query(org_query) | first | default({}) }}"
+  loop: "{{ participants }}"
+  loop_control:
+    loop_var: participant
+  when: org != {} and org is not none

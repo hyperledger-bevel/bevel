@@ -49,14 +49,29 @@
         loop_var: org
       when: 
       - org.org_status is not defined or org.org_status == 'new'
-  
+
+    # Create Storageclass for orgs
+    - name: "Create storageclass for each organization"
+      include_role:
+        name: "{{ playbook_dir }}/../../../platforms/shared/configuration/roles/setup/storageclass"  
+      vars:
+        org_name: "{{ org.name | lower }}"
+        sc_name: "{{ org_name }}-bevel-storageclass"
+        region: "{{ org.k8s.region | default('eu-west-2') }}"
+      loop: "{{ network['organizations'] }}"
+      loop_control:
+        loop_var: org
+      when: 
+      - org.org_status is not defined or org.org_status == 'new'
+
     # Create CA Server helm-value files and check-in
     - name: Create CA server for each organization
       include_role:
         name: "create/ca_server"
       vars:
         component_ns: "{{ org.name | lower}}-net"
-        component: "{{ org.name | lower}}"
+        component: "{{ org.name | lower }}"
+        sc_name: "{{ component }}-bevel-storageclass"
         component_services: "{{ org.services }}"
         kubernetes: "{{ org.k8s }}"
         vault: "{{ org.vault }}"
@@ -83,6 +98,7 @@
         build_path: "./build"
         namespace: "{{ org.name | lower}}-net"
         org_name: "{{ org.name | lower }}"
+        sc_name: "{{ org_name }}-bevel-storageclass"
         component_services: "{{ org.services }}"
         kubernetes: "{{ org.k8s }}"
         vault: "{{ org.vault }}"
@@ -105,9 +121,11 @@
         name: "create/peers"
       vars:
         build_path: "./build"
-        namespace: "{{ org.name | lower}}-net"
-        component_type: "{{ org.type | lower}}"
+        namespace: "{{ org.name | lower }}-net"
+        component_type: "{{ org.type | lower }}"
         component_services: "{{ org.services }}"
+        sc_name: "{{ org.name | lower }}-bevel-storageclass"
+        first_orderer: "{{ network.orderers | first }}"
         kubernetes: "{{ org.k8s }}"
         vault: "{{ org.vault }}"
         git_protocol: "{{ org.gitops.git_protocol }}"
@@ -121,14 +139,14 @@
         loop_var: org
       when: org.services.peers is defined and org.services.peers | length > 0
 
-    - name: "Create genesis block"
+    - name: "Create genesis block for bootstrap network"
       include_role: 
         name: "create/genesis"
       vars:
         org: "{{ network['organizations'] | first }}"
         docker_url: "{{ network.docker.url }}"
-        kubernetes: "{{ org.k8s  }}"
-        generateGenisis: true
+        kubernetes: "{{ org.k8s }}"
+        generateGenesis: true
 
   vars: #These variables can be overriden from the command line
     privilege_escalate: false           #Default to NOT escalate to root privledges

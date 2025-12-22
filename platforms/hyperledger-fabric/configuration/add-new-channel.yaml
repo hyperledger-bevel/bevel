@@ -31,9 +31,9 @@
       vars:
         org: "{{ network['organizations'] | first }}"
         docker_url: "{{ network.docker.url }}"
-        kubernetes: "{{ org.k8s  }}"
-        generateGenisis: false
-      when: genererate_configtx is defined and genererate_configtx == 'true'
+        kubernetes: "{{ org.k8s }}"
+        generateGenesis: false
+      when: generate_configtx is defined and generate_configtx == 'true'
 
     # This role creates the value file for creating channel from creator organization
     # to the vault.

@@ -7,7 +7,7 @@
 apiVersion: v1
 name: fabric-ca-server
 description: "Hyperledger Fabric: Deploys Fabric CA server"
-version: 1.1.0
+version: 1.3.1
 appVersion: latest
 keywords:
   - bevel
@@ -20,8 +20,8 @@ keywords:
   - accenture
 home: https://hyperledger-bevel.readthedocs.io/en/latest/
 sources:
-  - https://github.com/hyperledger/bevel
+  - https://github.com/hyperledger-bevel/bevel
 maintainers:
   - name: Hyperledger Bevel maintainers
-    email: bevel@lists.hyperledger.org
+    email: bevel@lists.lfdecentralizedtrust.org
 

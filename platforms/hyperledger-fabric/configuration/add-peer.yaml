@@ -45,6 +45,7 @@
       namespace: "{{ org.name | lower}}-net"
       component_type: "{{ org.type | lower}}"
       component_services: "{{ org.services }}"
+      sc_name: "{{ org.name | lower }}-bevel-storageclass"
       kubernetes: "{{ org.k8s }}"
       vault: "{{ org.vault }}"
       git_protocol: "{{ org.gitops.git_protocol }}"

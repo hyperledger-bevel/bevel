@@ -33,7 +33,7 @@ spec:
         app.kubernetes.io/release: {{ .Release.Name }}
         app.kubernetes.io/managed-by: helm
     spec:
-      serviceAccountName: {{ .Values.global.serviceAccountName }}      
+      serviceAccountName: {{ .Values.global.serviceAccountName }}
       restartPolicy: "Never"
       {{- if .Values.image.pullSecret }}
       imagePullSecrets:

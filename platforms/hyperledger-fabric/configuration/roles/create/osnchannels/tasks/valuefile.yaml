@@ -77,7 +77,7 @@
     existingOrdererAddress: "{{ existing_orderer.uri }}"
     orderers_list: "{{ org.services.orderers }}"
     first_orderer: "{{ org.services.orderers | first }}"
-    values_dir: "{{playbook_dir}}/../../../{{org.gitops.release_dir}}/{{ org.name | lower }}"
+    values_dir: "{{playbook_dir}}/../../../{{org.gitops.component_dir}}/{{ org.name | lower }}"
     add_orderer_value: "{{ add_orderer | default('false') }}"
     external_url_suffix: "{{ org.external_url_suffix }}"
   when: add_orderer is defined and add_orderer == 'true'

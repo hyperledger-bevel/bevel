@@ -37,13 +37,10 @@ spec:
         externalUrlSuffix: {{ org.external_url_suffix }}
 
     storage:
-      enabled: {{ sc_enabled }}
+      enabled: false
+      nameOverride: {{ sc_name }}
       peer: 512Mi
       couchdb: 512Mi
-      reclaimPolicy: "Delete" 
-      volumeBindingMode: Immediate 
-      allowedTopologies:
-        enabled: false
 
     certs:
       generateCertificates: true
@@ -76,7 +73,7 @@ spec:
 
     image:
       couchdb: {{ docker_url }}/{{ couchdb_image }}
-      peer: {{ docker_url }}/{{ peer_image }}
+      peer: hyperledger/fabric-peer
       alpineUtils: {{ docker_url }}/bevel-alpine:{{ bevel_alpine_version }}
 {% if network.docker.username is defined and network.docker.password is defined  %}
       pullSecret: regcred
@@ -90,6 +87,7 @@ spec:
       localMspId: {{ name }}MSP
       tlsStatus: true
       cliEnabled: {{ enabled_cli }}
+      storageClass: {{ sc_name }}
       ordererAddress: {{ orderer.uri }}
       builder: hyperledger/fabric-ccenv
       couchdb:

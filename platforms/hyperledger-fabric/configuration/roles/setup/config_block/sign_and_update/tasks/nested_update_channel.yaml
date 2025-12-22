@@ -54,6 +54,13 @@
   retries: 5
   delay: 10
 
+# Delete the build folder if channel update is successful
+- name: Delete the build folder
+  ansible.builtin.file:
+    path: ./build
+    state: absent
+  when: update_channel is succeeded
+
 # Delete the cli   
 - name: "Delete cli {{ peer.name }}-{{ participant.name }}-cli"
   shell: |

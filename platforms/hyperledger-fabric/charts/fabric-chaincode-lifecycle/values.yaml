@@ -1,0 +1,133 @@
+##############################################################################################
+#  Copyright Sownak Roy. All Rights Reserved.
+#
+#  SPDX-License-Identifier: Apache-2.0
+##############################################################################################
+
+global:
+  # HLF Network Version
+  #Eg. version: 2.5.4
+  version: 2.5.4
+  #Provide the service account name which will be created.
+  serviceAccountName: vault-auth
+  cluster:
+    provider: aws  # choose from: minikube | aws | azure | gcp
+    cloudNativeServices: false # only 'false' is implemented
+  vault:
+    #Provide the type of vault
+    #Eg. type: hashicorp
+    type: hashicorp
+    #Provide the vaultrole for an organization
+    #Eg. vaultrole: org1-vault-role
+    role: vault-role
+    #Provide the vault server address
+    #Eg. vaultaddress: http://Vault-884963190.eu-west-1.elb.amazonaws.com
+    address:
+    #Provide the kubernetes auth backed configured in vault for an organization
+    #Eg. authpath: manufacturer
+    authPath: manufacturer
+    #Provide the secret engine.
+    secretEngine: secretsv2
+    #Provide the vault path where the secrets will be stored
+    secretPrefix: "data/manufacturer"
+    #Kuberenetes secret for vault ca.cert
+    #Enable or disable TLS for vault communication if value present or not
+    #Eg. tls: vaultca
+    tls: 
+
+  proxy:
+    #This will be the proxy/ingress provider. Can have values "none" or "haproxy"
+    #Eg. provider: "haproxy"
+    provider: "haproxy"
+    #This field contains the external URL of the organization
+    #Eg. externalUrlSuffix: test.blockchaincloudpoc.com
+    externalUrlSuffix: test.blockchaincloudpoc.com
+    #This field contains the external port on haproxy
+    #Eg. port: 443
+    port: 443
+
+image:
+  #Provide the valid image name for fabric tools, version will be matched with global.version
+  #Eg. fabrictools: hyperledger/fabric-tools
+  fabrictools: ghcr.io/hyperledger/bevel-fabric-tools
+  #Provide the valid image name and version to read certificates from vault server
+  #Eg. alpineutils: ghcr.io/hyperledger/bevel-alpine:latest
+  alpineutils: ghcr.io/hyperledger/bevel-alpine:latest
+  #Provide the secret to use if private repository
+  #Eg. pullSecret: regcred
+  pullSecret: 
+
+peer:
+  #Provide the name of the peer as per deployment yaml.
+  #Eg. name: peer0
+  name: peer0
+  #Provide the address of the peer who creates the channel and port to be mentioned is grpc cluster IP port
+  #Eg. address: peer0.org1-net:7051
+  address: peer0.org1-net:7051
+  #Provide the localMspId for organization
+  #Eg. localMspId: Org1MSP
+  localMspId: Org1MSP
+  #Provide the logLevel for organization's peer
+  #Eg. logLevel: info
+  logLevel: debug
+  #Provide the value for tlsStatus to be true or false for organization's peer
+  #Eg. tlsStatus: true
+  tlsStatus: true
+  #Provide the address for orderer; optional is cliEnabled: false
+  #Eg. ordererAddress: orderer1.test.blockchaincloudpoc.com:443
+  ordererAddress: orderer1.supplychain-net:7050
+
+chaincode:
+  #Provide the name of the channel on which chaincode is to be committed
+  #Eg. channel: mychannel
+  channel: mychannel
+  #Provide the name of the chaincode to be commmitted
+  #Eg. name: cc
+  name: example
+  #Provide the chaincode version to be committed
+  #Eg. version: 1
+  version: 1
+  #Provide the chaincode sequence to be committed, applies to Fabric 2.2.x
+  #Eg. sequence: 1
+  sequence: 1
+  #Provide the commit arguments
+  #Eg. arguments: '"init","a","200","b","400"'
+  arguments: ""
+  #Provide the endorsement policies for the chaincode
+  #Eg.endorsementPolicies: "OR('Org1MSP.peer', 'Org2MSP.peer')"
+  endorsementPolicies: ""
+  #Provide a valid chaincode builder image for Fabric
+  #Eg. builder: hyperledger/fabric-ccenv:1.4.8
+  builder: hyperledger/fabric-ccenv:2.2.2
+  initRequired: false
+  pdc:
+    # Enable private data collections for the chaincode
+    enabled: false
+    # Collections configuration for private data collections base64 -w 0 encoded
+    collectionsConfig: ""
+
+# Endorsers configuration (for commit and invoke operation)
+endorsers:
+  - name: org1
+    corePeerAddress: peer0.org1-net:7051
+    certificate: awdadads # base64 encoded tlsca certificate
+  - name: org2
+    corePeerAddress: peer0.org2-net:7051
+    certificate: awdadads # base64 encoded tlsca certificate
+
+# Lifecycle configuration
+# Control which operations to perform
+lifecycle:
+  approve:
+    enabled: true
+    waitForInstall: true
+  commit:
+    enabled: false
+    waitForApprove: false
+  invoke:
+    enabled: false
+    waitForCommit: false
+
+# Custom labels
+labels:
+  custom: []

@@ -21,7 +21,7 @@
     # Create CLI pod for peers with cli option enabled
     - name: Create CLI pod for each peer with it enabled
       include_role:
-        name: "create/new_cli"
+        name: "create/cli_pod"
       vars:
         peers: "{{ org.services.peers }}"
         docker_url: "{{ network.docker.url }}"

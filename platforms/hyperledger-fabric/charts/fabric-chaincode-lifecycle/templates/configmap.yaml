@@ -1,0 +1,18 @@
+{{- if .Values.chaincode.pdc.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-collections-config
+  labels:
+    app.kubernetes.io/part-of: {{ include "fabric-chaincode-lifecycle.fullname" . }}
+    app.kubernetes.io/namespace: {{ .Release.Namespace }}
+    app.kubernetes.io/release: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: helm
+  annotations:
+    helm.sh/hook-weight: "-10"
+    helm.sh/hook: "pre-install,pre-upgrade"
+    helm.sh/hook-delete-policy: "before-hook-creation"
+data:
+  collections_config.json: |
+    {{ .Values.chaincode.pdc.collectionsConfig | b64dec | nindent 4 }}
+{{- end }}

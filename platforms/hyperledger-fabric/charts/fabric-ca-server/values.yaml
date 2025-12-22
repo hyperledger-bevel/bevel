@@ -48,6 +48,11 @@ global:
     externalUrlSuffix: test.blockchaincloudpoc.com
 
 storage:
+  #Flag to create new storage class for organization. Set to false for existing storage class.
+  #Eg. enabled: true
+  enabled: true
+  # Name override for storageclass
+  nameOverride: aws-storageclass
   #Provide the size for CA
   #Eg. size: 512Mi
   size: 512Mi

@@ -1,0 +1,58 @@
+##############################################################################################
+#  Copyright Accenture. All Rights Reserved.
+#
+#  SPDX-License-Identifier: Apache-2.0
+##############################################################################################
+
+# This playbook adds an organization to a DLT with Fabric network on existing Kubernetes clusters
+# The Kubernetes clusters should already be created and the infomation to connect to the
+#  clusters be updated in the network.yaml file that is used as an input to this playbook
+###########################################################################################
+# To Run this playbook from this directory, use the following command (network.yaml also in this directory)
+#  ansible-playbook add-organization.yaml -e "@./network.yaml" -e "add_new_org='true'"
+############################################################################################
+# Please ensure that the ../../shared/configuration playbooks have been run and a DLT network exists.
+# Please ensure the orderer certificates are placed on the paths mentioned in orderer.certificate in network.yaml
+---
+  # This will apply to ansible_provisioners. /etc/ansible/hosts should be configured with this group
+- hosts: ansible_provisioners
+  gather_facts: no
+  no_log: "{{ no_ansible_log | default(false) }}"
+  tasks:
+    # Generate script to modify the fetched configuration block
+    - include_role:
+        name: "create/new_organization/create_block"
+      vars:
+        build_path: "./build"
+        participants: "{{ channel.participants }}"
+        channel_name: "{{ channel.channel_name | lower}}"
+      loop: "{{ network['channels'] }}"
+      loop_control:
+        loop_var: channel
+
+    # This role is to start the existing peer cli
+    # Fetch the configuration block and modify the block
+    - include_role:
+        name: "setup/config_block/fetch"
+      vars:
+        build_path: "./build"
+        participants: "{{ item.participants }}"
+        docker_url: "{{ network.docker.url }}"
+      loop: "{{ network['channels'] }}"
+
+     # This role fetch the block from the ansible host and get it signed from each existing organization admin
+    - include_role:
+        name: "setup/config_block/sign_and_update"
+      vars:
+        build_path: "./build"
+        participants: "{{ item.participants }}"
+        docker_url: "{{ network.docker.url }}"
+      loop: "{{ network['channels'] }}"
+
+  vars: # These variables can be overriden from the command line
+    privilege_escalate: false           # Default to NOT escalate to root privledges
+    install_os: "linux"                 # Default to linux OS
+    install_arch:  "amd64"              # Default to amd64 architecture
+    bin_install_dir:  "~/bin"           # Default to /bin install directory for binaries
+    add_new_org: "true"                 # Default to true
+    generate_configtx: "true" 

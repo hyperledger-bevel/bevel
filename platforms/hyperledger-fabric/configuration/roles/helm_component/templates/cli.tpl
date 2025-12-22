@@ -27,9 +27,9 @@ spec:
         type: hashicorp
         network: fabric
         address: {{ vault.url }}
-        authPath: {{ network.env.type }}{{ component }}
+        authPath: {{ network.env.type }}{{ org.name | lower }}
         secretEngine: {{ vault.secret_path | default("secretsv2") }}
-        secretPrefix: "data/{{ network.env.type }}{{ component }}"
+        secretPrefix: "data/{{ network.env.type }}{{ org.name | lower }}"
         role: vault-role
         tls: false
 
@@ -43,7 +43,7 @@ spec:
 {% endif %}
 
     peerName: {{ peer.name }}
-    storageClass: storage-{{ peer.name }}
+    storageClass: {{ sc_name }}
     storageSize: 256Mi
     localMspId: {{ org.name | lower}}MSP
     tlsStatus: true

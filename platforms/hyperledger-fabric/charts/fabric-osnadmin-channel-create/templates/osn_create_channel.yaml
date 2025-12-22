@@ -207,10 +207,12 @@ spec:
 
           #!/usr/bin/env sh
           echo "Format or fetch genesis file..."
+
           if [ $ADD_ORDERER = false ]
           then
             cat ./genesis/genesis.block.base64 | base64 -d > orderer.genesis.block
-          else 
+          else
+            echo "Updating orderer configs..."
             peer channel fetch config ${CHANNEL_NAME}_config_block.pb -o ${CORE_PEER_ADDRESS} -c ${CHANNEL_NAME} --tls --cafile ${ORDERER_CA}
           fi 
 

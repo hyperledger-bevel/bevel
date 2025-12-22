@@ -14,7 +14,8 @@
     name: k8_component
   vars:
     component: "{{ participant.name | lower }}"
-    component_type: "existing_peer_cli_job"    
+    component_type: "existing_peer_cli_job"
+    storage_class: "{{ org.name }}-bevel-storageclass" 
     component_name: "{{ peer.name | lower}}-cli"
     orderer: "{{ network.orderers | first }}"
     component_ns: "{{ participant.name | lower}}-net"

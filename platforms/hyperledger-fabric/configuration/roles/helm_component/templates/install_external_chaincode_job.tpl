@@ -1,13 +1,13 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: {{ component_name }}
-  namespace: {{ name | lower | e }}-net
+  name: {{ component_name | replace('_','-') }}
+  namespace: {{ namespace }}
   annotations:
     fluxcd.io/automated: "false"
 spec:
   interval: 1m
-  releaseName: {{ component_name }}
+  releaseName: {{ component_name | replace('_','-') }}
   chart:
     spec:
       interval: 1m
@@ -15,40 +15,68 @@ spec:
         kind: GitRepository
         name: flux-{{ network.env.type }}
         namespace: flux-{{ network.env.type }}
-      chart: {{ charts_dir }}/fabric-external-chaincode-install
+      chart: {{ charts_dir }}/fabric-external-chaincode
   values:
-    metadata:
-      namespace: {{ namespace }}
-      network:
-        version: {{ network.version }}
-      images:
-        fabrictools: {{ docker_url }}/{{ fabric_tools_image[network.version] }}
-        alpineutils: {{ docker_url }}/{{ alpine_image }}
+    global:
+      version: {{ network.version }}
+      serviceAccountName: vault-auth
+      cluster:
+        provider: {{ org.cloud_provider }}
+        cloudNativeServices: false
+      vault:
+        type: hashicorp
+        network: fabric
+        address: {{ vault.url }}
+        authPath: {{ network.env.type }}{{ name }}
+        secretEngine: {{ vault.secret_path | default("secretsv2") }}
+        secretPrefix: "data/{{ network.env.type }}{{ name }}"
+        role: vault-role
+        tls: false
+      proxy:
+        provider: {{ network.env.proxy | quote }}
+        externalUrlSuffix: {{ org.external_url_suffix }}
+
+    certs:
+      refreshCertValue: false
+      orgData:
+{% if network.env.proxy == 'none' %}
+        caAddress: ca.{{ namespace }}:7054
+{% else %}
+        caAddress: ca.{{ namespace }}.{{ org.external_url_suffix }}
+{% endif %}
+        caAdminUser: {{ name }}-admin
+        caAdminPassword: {{ name }}-adminpw
+        orgName: {{ name }}
+        type: peer
+        componentSubject: "{{ component_subject | quote }}"
+
+    image:
+      alpineUtils: {{ docker_url }}/bevel-alpine:latest
+      catools:  {{ docker_url }}/bevel-fabric-ca:latest
+      fabrictools:  {{ docker_url }}/bevel-fabric-tools
+      external_chaincode:  {{ component_chaincode.image }}
+{% if network.docker.username is defined and network.docker.password is defined  %}
+      pullSecret: regcred
+{% else %}
+      pullSecret: ""
+{% endif %}
     peer:
       name: {{ peer_name }}
       address: {{ peer_address }}
-      localmspid: {{ name }}MSP
-      loglevel: debug
-      tlsstatus: true
-    vault:
-      role: vault-role
-      address: {{ vault.url }}
-      authpath: {{ item.k8s.cluster_id | default('')}}{{ network.env.type }}{{ item.name | lower }}
-      chaincodesecretprefix: {{ vault.secret_path | default('secretsv2') }}/data/{{ item.name | lower }}/peerOrganizations/{{ namespace }}/peers/{{ peer_name }}.{{ namespace }}/chaincodes
-      adminsecretprefix: {{ vault.secret_path | default('secretsv2') }}/data/{{ item.name | lower }}/peerOrganizations/{{ namespace }}/users/admin 
-      orderersecretprefix: {{ vault.secret_path | default('secretsv2') }}/data/{{ item.name | lower }}/peerOrganizations/{{ namespace }}/orderer
-      serviceaccountname: vault-auth
-      type: {{ vault.type | default("hashicorp") }}
-{% if network.docker.username is defined and network.docker.password is defined %}
-      imagesecretname: regcred
-{% else %}
-      imagesecretname: ""
-{% endif %}
-      secretgitprivatekey: {{ vault.secret_path | default('secretsv2') }}/data/{{ item.name | lower }}/credentials/{{ namespace }}/git?git_password
-      tls: false
-      chaincodepackageprefix: {{ vault.secret_path | default('secretsv2') }}/data/{{ item.name | lower }}/peerOrganizations/{{ namespace }}/chaincodes/{{ component_chaincode.name | lower | e }}/package/v{{ component_chaincode.version }}
+      localMspId: {{ name }}MSP
+      logLevel: info
+      tlsStatus: true
+
     chaincode:
-      name: {{ component_chaincode.name | lower | e }}
+      name: {{ component_chaincode.name }}
       version: {{ component_chaincode.version }}
       tls: {{ component_chaincode.tls }}
-      address: cc-{{ component_chaincode.name | lower | e }}.{{ namespace }}.svc.cluster.local:7052
+      crypto_mount_path: "/crypto"
+{% if org.services.peers | length > 1 and peer_name != org.services.peers[0].name %}
+      address: {{ org.services.peers[0].name }}-{{ component_chaincode.name }}-{{ chaincode.version | replace('.','-')}}.{{ namespace }}:7052
+{% endif %}
+      serviceType: ClusterIP
+      port: 7052
+      healthCheck: 
+        retries: 20
+        sleepTimeAfterError: 15

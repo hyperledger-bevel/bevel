@@ -19,20 +19,20 @@
 
   - name: Download kubectl binary
     get_url:
-      url: "https://dl.k8s.io/v{{ kubectl.version | default(default.version) }}/kubernetes-client-{{ kubectl.os | default(default.os) }}-{{ kubectl.arch | default(default.arch)}}.tar.gz"
+      url: "https://dl.k8s.io/release/v{{ kubectl.version | default(default.version) }}/bin/{{ kubectl.os | default(default.os) }}/{{ kubectl.arch | default(default.arch)}}/kubectl"
       dest: "{{ tmp_directory.path }}"
       checksum: "{{ kubectl.checksum | default(default.checksum)}}"
     when: not kubectl_stat_result.stat.exists
     tags:
       - kubectl
   
-  - name: Unarchive kubernetes-client
-    unarchive:
-      src: "{{ tmp_directory.path }}/kubernetes-client-{{ kubectl.os | default(default.os) }}-{{ kubectl.arch | default(default.arch)}}.tar.gz"
-      dest: "{{ tmp_directory.path }}"
-    when: not kubectl_stat_result.stat.exists
-    tags:
-      - kubectl
+  # - name: Unarchive kubernetes-client
+  #   unarchive:
+  #     src: "{{ tmp_directory.path }}/kubernetes-client-{{ kubectl.os | default(default.os) }}-{{ kubectl.arch | default(default.arch)}}.tar.gz"
+  #     dest: "{{ tmp_directory.path }}"
+  #   when: not kubectl_stat_result.stat.exists
+  #   tags:
+  #     - kubectl
 
   - name: create bin directory
     file:
@@ -44,7 +44,7 @@
 
   - name: Copy kubectl binary to destination directory
     copy:
-      src: "{{ tmp_directory.path }}/kubernetes/client/bin/{{ bin_item }}"
+      src: "{{ tmp_directory.path }}/{{ bin_item }}"
       dest: "{{ kubectl.bin_directory | default(default.bin_directory) }}/{{ bin_item }}"
       mode: 0755
       remote_src: yes
@@ -57,7 +57,7 @@
       - kubectl
 
   - name: Test kubectl installation
-    command: kubectl version 
+    command: kubectl config view 
     changed_when: false
 
   - name: Changing the current context namespace to default

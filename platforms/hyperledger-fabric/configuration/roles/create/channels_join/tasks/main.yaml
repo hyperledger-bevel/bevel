@@ -16,7 +16,7 @@
   loop_control:
     loop_var: participant
   when: 
-  - participant.org_status == 'new' or (participant.peerstatus is not defined or participant.peerstatus == 'new')
+  - participant.org_status == 'new' or (participant.org_status == 'existing' and participant.peers[0].peerstatus is defined)
 
 # Call check for each peer
 - name: Call check for each peer
@@ -30,4 +30,4 @@
   loop_control:
     loop_var: participant
   when: 
-  - participant.org_status == 'new' or (participant.peerstatus is not defined or participant.peerstatus == 'new')
+  - participant.org_status == 'new' or (participant.org_status == 'existing' and participant.peers[0].peerstatus is defined)

@@ -27,7 +27,7 @@
     name: "genesis"
     release_namespace: "{{ org.name | lower }}-net"
     state: absent
-  when: genererate_configtx is defined and genererate_configtx == 'true'
+  when: generate_configtx is defined and generate_configtx == 'true'
 
 # Fetch peers cetificates
 - name: Fetch peers cetificates

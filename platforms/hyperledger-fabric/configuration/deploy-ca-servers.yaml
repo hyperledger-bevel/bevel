@@ -1,0 +1,85 @@
+##############################################################################################
+#  Copyright Accenture. All Rights Reserved.
+#
+#  SPDX-License-Identifier: Apache-2.0
+##############################################################################################
+
+# This playbook deploys a DLT network on existing Kubernetes clusters
+# The Kubernetes clusters should already be created and the information to connect to the
+#  clusters be updated in the network.yaml file that is used as an input to this playbook
+###########################################################################################
+# To Run this playbook from this directory, use the following command (network.yaml also in this directory)
+#  ansible-playbook deploy-network.yaml -e "@./network.yaml"
+############################################################################################
+# Please ensure that the ../../shared/configuration playbooks have been run using the same network.yaml
+---
+  # This will apply to ansible_provisioners. /etc/ansible/hosts should be configured with this group
+- hosts: ansible_provisioners
+  gather_facts: no
+  no_log: "{{ no_ansible_log | default(false) }}"
+  tasks:
+    # delete build directory
+    - name: Remove build directory
+      file:
+        path: "./build"
+        state: absent
+
+    # Create Namespaces and Vault-rbac kubernetes-value files
+    - name: Create namespace and Vault auth for each organization
+      include_role:
+        name: "create/namespace"
+      vars:
+        component_name: "{{ org.name | lower }}-net"
+        kubernetes: "{{ org.k8s }}"
+        release_dir: "{{playbook_dir}}/../../../{{org.gitops.release_dir}}/{{ org.name | lower }}"
+      loop: "{{ network['organizations'] }}"
+      loop_control:
+        loop_var: org
+  
+    # Create necessary secrets
+    - name: "Create k8s secrets"
+      include_role:
+        name: create/secrets
+      vars:
+        component_ns: "{{ org.name | lower }}-net"
+        kubernetes: "{{ org.k8s }}"
+        vault: "{{ org.vault }}"
+      loop: "{{ network['organizations'] }}"
+      loop_control:
+        loop_var: org
+      when: 
+      - org.org_status is not defined or org.org_status == 'new'
+
+    # Create Storageclass for orgs
+    - name: "Create storageclass for each organization"
+      include_role:
+        name: "{{ playbook_dir }}/../../../platforms/shared/configuration/roles/setup/storageclass"  
+      vars:
+        org_name: "{{ org.name | lower }}"
+        sc_name: "{{ org_name }}-bevel-storageclass"
+        region: "{{ org.k8s.region | default('eu-west-2') }}"
+      loop: "{{ network['organizations'] }}"
+      loop_control:
+        loop_var: org
+      when: 
+      - org.org_status is not defined or org.org_status == 'new'
+
+    # Create CA Server helm-value files and check-in
+    - name: Create CA server for each organization
+      include_role:
+        name: "create/ca_server"
+      vars:
+        component_ns: "{{ org.name | lower}}-net"
+        component: "{{ org.name | lower }}"
+        sc_name: "{{ component }}-bevel-storageclass"
+        component_services: "{{ org.services }}"
+        kubernetes: "{{ org.k8s }}"
+        vault: "{{ org.vault }}"
+        ca: "{{ org.services.ca }}"
+        docker_url: "{{ network.docker.url }}"
+        gitops: "{{ org.gitops }}"
+        values_dir: "{{playbook_dir}}/../../../{{org.gitops.release_dir}}/{{ org.name | lower }}"
+      loop: "{{ network['organizations'] }}"
+      loop_control:
+        loop_var: org
+      when: org.services.ca is defined

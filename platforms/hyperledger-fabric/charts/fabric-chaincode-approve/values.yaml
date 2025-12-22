@@ -102,7 +102,7 @@ chaincode:
     # Git username for the chaincode repository
     git_username: "user"
     # URL of the chaincode repository
-    url: "github.com/hyperledger/bevel-samples.git"
+    url: "github.com/hyperledger-bevel/bevel-samples.git"
     # Branch of the chaincode repository
     branch: "main"
     # Path to the chaincode within the repository

@@ -1,0 +1,463 @@
+##############################################################################################
+#  Copyright Sownak Roy. All Rights Reserved.
+#
+#  SPDX-License-Identifier: Apache-2.0
+##############################################################################################
+{{- if or .Values.lifecycle.commit.enabled .Values.lifecycle.invoke.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-commit-invoke
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Release.Name }}-commit-invoke
+    app.kubernetes.io/name: {{ include "fabric-chaincode-lifecycle.name" . }}-commit-invoke
+    app.kubernetes.io/component: commit
+    app.kubernetes.io/part-of: {{ include "fabric-chaincode-lifecycle.fullname" . }}
+    app.kubernetes.io/namespace: {{ .Release.Namespace }}
+    app.kubernetes.io/release: {{ .Release.Name }}
+    {{- include "labels.custom" . | nindent 4 }}
+  annotations:
+    helm.sh/hook-weight: "0"
+spec:
+  backoffLimit: 6
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-commit-invoke
+        app.kubernetes.io/name: {{ include "fabric-chaincode-lifecycle.name" . }}-commit-invoke
+        app.kubernetes.io/component: commit
+        app.kubernetes.io/part-of: {{ include "fabric-chaincode-lifecycle.fullname" . }}
+        app.kubernetes.io/namespace: {{ .Release.Namespace }}
+        app.kubernetes.io/release: {{ .Release.Name }}
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: {{ .Values.global.serviceAccountName }}
+      {{- if .Values.image.pullSecret }}
+      imagePullSecrets:
+        - name: {{ .Values.image.pullSecret }}
+      {{- end }}
+      volumes:
+      {{- if .Values.global.vault.tls }}
+      - name: vaultca
+        secret:
+          secretName: {{ .Values.global.vault.tls }}
+          items:
+          - key: ca.crt.pem
+            path: ca-certificates.crt
+      {{- end }}
+      - name: certificates
+        emptyDir:
+          medium: Memory
+      {{ if .Values.chaincode.pdc.enabled }}
+      - name: pdcconfig
+        configMap:
+          defaultMode: 420
+          name: {{ .Release.Name }}-collections-config
+      {{ end }}
+      - name: scripts-volume
+        configMap:
+          name: bevel-vault-script
+          defaultMode: 0777
+      - name: orderer-tls-cacert
+        configMap:
+          name: {{ include "ordererConfigMap" . }}
+          defaultMode: 0775
+          items:
+            - key: cacert
+              path: orderer.crt
+      initContainers:
+      - name: certificates-init
+        image: {{ .Values.image.alpineutils }}
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: VAULT_ADDR
+          value: {{ .Values.global.vault.address }}
+        - name: VAULT_SECRET_ENGINE
+          value: "{{ .Values.global.vault.secretEngine }}"
+        - name: VAULT_SECRET_PREFIX
+          value: "{{ .Values.global.vault.secretPrefix }}"
+        - name: KUBERNETES_AUTH_PATH
+          value: {{ .Values.global.vault.authPath }}
+        - name: VAULT_APP_ROLE
+          value: {{ .Values.global.vault.role }}
+        - name: MOUNT_PATH
+          value: /secret
+        - name: VAULT_TYPE
+          value: "{{ .Values.global.vault.type }}"
+        - name: ENDORSER_NAMES
+          value: {{ include "endorser.names" . | quote }}
+        command: ["sh", "-c"]
+        args:
+        - |-
+          #!/usr/bin/env sh
+          {{- if eq .Values.global.vault.type "hashicorp" }}
+          . /scripts/bevel-vault.sh
+
+          # Calling a function to retrieve the vault token.
+          vaultBevelFunc "init"
+
+          # Function to get Admin MSP Secret
+          function getAdminMspSecret {
+            KEY=$1
+            echo "Getting Admin MSP certificates from Vault."
+            vaultBevelFunc "readJson" "${VAULT_SECRET_ENGINE}/${VAULT_SECRET_PREFIX}/users/${KEY}"
+            if [ "$SECRETS_AVAILABLE" == "yes" ]
+            then
+              ADMINCERT=$(echo ${VAULT_SECRET} | jq -r '.["admincerts"]')
+              CACERTS=$(echo ${VAULT_SECRET} | jq -r '.["cacerts"]')
+              KEYSTORE=$(echo ${VAULT_SECRET} | jq -r '.["keystore"]')
+              SIGNCERTS=$(echo ${VAULT_SECRET} | jq -r '.["signcerts"]')
+              TLSCACERTS=$(echo ${VAULT_SECRET} | jq -r '.["tlscacerts"]')
+
+              OUTPUT_PATH="${MOUNT_PATH}/admin/msp"
+
+              echo "${ADMINCERT}" > ${OUTPUT_PATH}/admincerts/admin.crt
+              echo "${CACERTS}" > ${OUTPUT_PATH}/cacerts/ca.crt
+              echo "${KEYSTORE}" > ${OUTPUT_PATH}/keystore/server.key
+              echo "${SIGNCERTS}" > ${OUTPUT_PATH}/signcerts/server.crt
+              echo "${TLSCACERTS}" > ${OUTPUT_PATH}/tlscacerts/tlsca.crt
+              ADMIN_MSP_SECRET="true"
+            else
+              ADMIN_MSP_SECRET="false"
+            fi
+          }
+          {{- else }}
+          function getAdminMspSecret {
+            KEY=$1
+            KUBENETES_SECRET=$(kubectl get secret ${KEY} --namespace {{ .Release.Namespace }} -o json)
+            if  [ "$KUBENETES_SECRET" = "" ]; then
+              ADMIN_MSP_SECRET="false"
+            else
+              ADMINCERT=$(echo ${KUBENETES_SECRET} | jq -r '.data.admincerts'  | base64 -d)
+              CACERTS=$(echo ${KUBENETES_SECRET} | jq -r '.data.cacerts'  | base64 -d)
+              KEYSTORE=$(echo ${KUBENETES_SECRET} | jq -r '.data.keystore'  | base64 -d)
+              SIGNCERTS=$(echo ${KUBENETES_SECRET} | jq -r '.data.signcerts'  | base64 -d)
+              TLSCACERTS=$(echo ${KUBENETES_SECRET} | jq -r '.data.tlscacerts'  | base64 -d)
+
+              echo "${ADMINCERT}" > ${OUTPUT_PATH}/admincerts/admin.crt
+              echo "${CACERTS}" > ${OUTPUT_PATH}/cacerts/ca.crt
+              echo "${KEYSTORE}" > ${OUTPUT_PATH}/keystore/server.key
+              echo "${SIGNCERTS}" > ${OUTPUT_PATH}/signcerts/server.crt
+              echo "${TLSCACERTS}" > ${OUTPUT_PATH}/tlscacerts/tlsca.crt   
+              ADMIN_MSP_SECRET="true"
+            fi            
+          }
+
+          {{- end }}
+          function getEndorserSecret {
+            ORG_NAME=$1
+            {{- range .Values.endorsers }}
+            if [ "${ORG_NAME}" = "{{ .name }}" ]; then
+              ENDORSER_CACERT=$(echo "{{ .certificate }}" | base64 -d)
+              mkdir -p ${MOUNT_PATH}/endorsers/${ORG_NAME}/msp/cacerts
+              echo "${ENDORSER_CACERT}" > ${MOUNT_PATH}/endorsers/${ORG_NAME}/msp/cacerts/ca.crt
+              return 0
+            fi
+            {{- end }}
+            echo "Error: Endorser org '${ORG_NAME}' not found"
+            return 1
+          }
+          OUTPUT_PATH="${MOUNT_PATH}/admin/msp"
+          mkdir -p ${OUTPUT_PATH}/admincerts
+          mkdir -p ${OUTPUT_PATH}/cacerts
+          mkdir -p ${OUTPUT_PATH}/keystore
+          mkdir -p ${OUTPUT_PATH}/signcerts
+          mkdir -p ${OUTPUT_PATH}/tlscacerts
+          mkdir -p ${MOUNT_PATH}/endorsers
+          COUNTER=1
+          while [ "$COUNTER" -le 20 ]
+          do
+            
+            getAdminMspSecret admin-msp
+            # Get endorser certificates
+            ENDORSER_SECRETS_SUCCESS=true
+            for name in $ENDORSER_NAMES; do
+              if ! getEndorserSecret "$name"; then
+                echo "Failed to get endorser certificates for $name"
+                ENDORSER_SECRETS_SUCCESS=false
+                break
+              fi
+            done
+            if [ "$ADMIN_MSP_SECRET" = "true" ] && [ "$ENDORSER_SECRETS_SUCCESS" = "true" ]
+            then
+              echo "All certificates have been obtained correctly for commit operation"
+              break
+            else
+              echo "Certificates have not been obtained, sleeping for 15"
+              sleep 15
+              COUNTER=`expr "$COUNTER" + 1`
+            fi
+          done
+          if [ "$COUNTER" -gt 20 ]
+          then
+            echo "Retry attempted `expr $COUNTER - 1` times, certificates have not been obtained."
+            exit 1
+          fi
+
+          echo "All certificates fetched successfully for commit-invoke operation"
+        volumeMounts:
+        {{- if .Values.global.vault.tls }}
+        - name: vaultca
+          mountPath: "/etc/ssl/certs/"
+          readOnly: true
+        {{- end }}
+        - name: certificates
+          mountPath: /secret
+        - name: scripts-volume
+          mountPath: /scripts/bevel-vault.sh
+          subPath: bevel-vault.sh
+      containers:
+      - name: commit-invoke
+        image: {{ .Values.image.fabrictools }}:{{ .Values.global.version }}
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: CORE_VM_ENDPOINT
+          value: unix:///host/var/run/docker.sock
+        - name: FABRIC_LOGGING_SPEC
+          value: "{{ .Values.peer.logLevel }}"
+        - name: CORE_PEER_ID
+          value: {{ .Values.peer.name }}.{{ .Release.Namespace }}
+        - name: CORE_PEER_ADDRESS
+          value: {{ .Values.peer.address }}
+        - name: CORE_PEER_LOCALMSPID
+          value: {{ .Values.peer.localMspId }}
+        - name: CORE_PEER_TLS_ENABLED
+          value: "{{ .Values.peer.tlsStatus }}"
+        - name: CORE_PEER_TLS_ROOTCERT_FILE
+          value: "/opt/gopath/src/github.com/hyperledger/fabric/crypto/admin/msp/tlscacerts/tlsca.crt"
+        - name: ORDERER_CA
+          value: "/opt/gopath/src/github.com/hyperledger/fabric/orderer/tls/orderer.crt"
+        - name: CORE_PEER_MSPCONFIGPATH
+          value: /opt/gopath/src/github.com/hyperledger/fabric/crypto/admin/msp
+        - name: ORDERER_URL
+          value: {{ .Values.peer.ordererAddress }}
+        - name: CHANNEL_NAME
+          value: "{{ .Values.chaincode.channel }}"
+        - name: CHAINCODE_NAME
+          value: "{{ .Values.chaincode.name }}"
+        - name: CHAINCODE_VERSION
+          value: "{{ .Values.chaincode.version }}"
+        - name: CHAINCODE_SEQUENCE
+          value: "{{ .Values.chaincode.sequence }}"
+        - name: CORE_CHAINCODE_BUILDER
+          value: "{{ .Values.chaincode.builder }}"
+        - name: INIT_REQUIRED
+          value: "{{ .Values.chaincode.initRequired }}"
+        - name: INVOKE_ARGUMENTS
+          value: {{ .Values.chaincode.arguments | quote }}
+        - name: ENDORSEMENT_POLICIES
+          value: "{{ .Values.chaincode.endorsementPolicies }}"
+        - name: ENDORSER_NAMES
+          value: {{ include "endorser.names" . | quote }}
+        - name: ENDORSER_ADDRESSES
+          value: {{ include "endorser.addresses" . | quote }}
+        - name: PDC_ENABLED
+          value: "{{ .Values.chaincode.pdc.enabled }}"
+        stdin: true
+        tty: true
+        command: ["sh", "-c"]
+        args:
+        - |-
+          #!/bin/bash sh
+
+          # Logging functions
+          log_info() { echo "[INFO] $(date '+%Y-%m-%d %H:%M:%S') - $1"; }
+          log_error() { echo "[ERROR] $(date '+%Y-%m-%d %H:%M:%S') - $1" >&2; }
+          log_success() { echo "[SUCCESS] $(date '+%Y-%m-%d %H:%M:%S') - $1"; }
+
+          # Function to execute a command with retries
+          execute_with_retry() {
+            local cmd="$1"
+            local desc="$2"
+            local max_attempts=5
+            local delay=10
+            
+            for attempt in $(seq 1 $max_attempts); do
+              log_info "Attempt $attempt of $max_attempts: $desc"
+              if eval "$cmd"; then
+                log_success "$desc completed successfully"
+                return 0
+              else
+                if [ $attempt -lt $max_attempts ]; then
+                  log_info "Attempt $attempt failed, retrying in ${delay}s..."
+                  sleep $delay
+                else
+                  log_error "$desc failed after $max_attempts attempts"
+                  return 1
+                fi
+              fi
+            done
+          }
+
+          # Variables to track which operations to perform
+          COMMIT_ENABLED="{{ .Values.lifecycle.commit.enabled }}"
+          INVOKE_ENABLED="{{ .Values.lifecycle.invoke.enabled }}"
+          ##############################################
+          # COMMIT OPERATION
+          ##############################################
+          if [ "$COMMIT_ENABLED" = "true" ]; then
+            log_info "======== Starting chaincode commit process ========"
+            # Check if already committed
+            log_info "Checking if chaincode is already committed..."
+            if peer lifecycle chaincode querycommitted -C ${CHANNEL_NAME} -n ${CHAINCODE_NAME} --sequence ${CHAINCODE_SEQUENCE} >/dev/null 2>&1; then
+              log_info "Chaincode ${CHAINCODE_NAME} v${CHAINCODE_VERSION} is already committed"
+              COMMIT_ALREADY_DONE=true
+            else
+              COMMIT_ALREADY_DONE=false
+            fi
+            
+            if [ "$COMMIT_ALREADY_DONE" = "false" ]; then
+              # Build commit command
+              COMMIT_CMD="peer lifecycle chaincode commit -o ${ORDERER_URL} --tls ${CORE_PEER_TLS_ENABLED} --cafile ${ORDERER_CA} --channelID ${CHANNEL_NAME} --name ${CHAINCODE_NAME} --version ${CHAINCODE_VERSION} --sequence ${CHAINCODE_SEQUENCE}"
+              COMMITREADINESS_CMD="peer lifecycle chaincode checkcommitreadiness --channelID ${CHANNEL_NAME} --name ${CHAINCODE_NAME} --version ${CHAINCODE_VERSION} --sequence ${CHAINCODE_SEQUENCE} --output json"
+
+              # Add endorser peer addresses and TLS certificates
+              for addr in $ENDORSER_ADDRESSES; do
+                COMMIT_CMD="${COMMIT_CMD} --peerAddresses ${addr}"
+              done
+
+              for name in $ENDORSER_NAMES; do
+                COMMIT_CMD="${COMMIT_CMD} --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/crypto/endorsers/${name}/msp/cacerts/ca.crt"
+              done
+
+              # Add init required flag
+              if [ "${INIT_REQUIRED}" = "true" ]; then
+                COMMIT_CMD="${COMMIT_CMD} --init-required"
+                COMMITREADINESS_CMD="${COMMITREADINESS_CMD} --init-required"
+              fi
+              # Handle Private Data Collections
+              if [ "${PDC_ENABLED}" = "true" ]; then
+                pdc_config=" --collections-config /opt/pdc/collections_config.json"
+                COMMIT_CMD=${COMMIT_CMD}${pdc_config}
+                COMMITREADINESS_CMD=${COMMITREADINESS_CMD}${pdc_config}
+              fi
+          
+              # Add endorsement policy if specified
+              if [ -n "${ENDORSEMENT_POLICIES}" ]; then
+                log_info "Adding endorsement policy: ${ENDORSEMENT_POLICIES}"
+                COMMIT_CMD="${COMMIT_CMD} --signature-policy \"${ENDORSEMENT_POLICIES}\""
+                COMMITREADINESS_CMD="${COMMITREADINESS_CMD} --signature-policy \"${ENDORSEMENT_POLICIES}\""
+              fi
+
+              {{- if .Values.lifecycle.commit.waitForApprove }}
+              # Wait for approvals from all required organizations
+              log_info "Waiting for chaincode approvals from majority of organizations..."
+              max_wait=1200  # 20 minutes
+              wait_time=0
+              # Count how many orgs are required for majority
+              READINESS_OUTPUT=$(eval ${COMMITREADINESS_CMD})
+              TOTAL_ORGS=$(echo "${READINESS_OUTPUT}" | jq '.approvals | length')
+              REQUIRED=$(( (TOTAL_ORGS / 2) + 1 ))
+              log_info "Total orgs: $TOTAL_ORGS, majority required: $REQUIRED"
+
+              while [ $wait_time -lt $max_wait ]; do
+                READINESS_OUTPUT=$(eval ${COMMITREADINESS_CMD})
+                APPROVED_COUNT=$(echo "${READINESS_OUTPUT}" | jq '[.approvals | to_entries[] | select(.value == true)] | length')
+
+                if [ "$APPROVED_COUNT" -ge "$REQUIRED" ]; then
+                  log_success "Majority approvals reached ($APPROVED_COUNT/$TOTAL_ORGS) - ready to commit"
+                  log_info "Current approvals:"
+                  echo "${READINESS_OUTPUT}" | jq -r '.approvals'
+                  break
+                fi
+                log_info "Majority not yet reached ($APPROVED_COUNT/$TOTAL_ORGS), waiting... ($wait_time/$max_wait seconds)"
+                echo "${READINESS_OUTPUT}" | jq -r '.approvals'
+                sleep 15
+                wait_time=$((wait_time + 15))
+              done
+            
+              if [ $wait_time -ge $max_wait ]; then
+                log_error "Timeout waiting for chaincode approvals"
+                peer lifecycle chaincode checkcommitreadiness -C ${CHANNEL_NAME} -n ${CHAINCODE_NAME} --version ${CHAINCODE_VERSION} --sequence ${CHAINCODE_SEQUENCE}
+                exit 1
+              fi
+              {{- end }}
+
+              log_info "Final commit command: ${COMMIT_CMD}"
+          
+              # Execute commit command with retry
+              execute_with_retry "${COMMIT_CMD}" "Commit chaincode"
+              
+              log_success "Chaincode commit completed successfully!"
+            else
+              log_info "Skipping commit as chaincode is already committed"
+            fi
+            log_info "======== COMMIT operation complete ========"
+          else
+            log_info "Commit operation disabled, skipping..."
+          fi
+          ##############################################
+          # INVOKE OPERATION
+          ##############################################
+          if [ "$INVOKE_ENABLED" = "true" ]; then
+            log_info "======== Starting INVOKE operation ========"
+            {{- if .Values.lifecycle.invoke.waitForCommit }}
+            # Wait for chaincode to be committed (either by us or previously)
+            log_info "Waiting for chaincode to be committed..."
+            max_wait=600
+            wait_time=0
+            while [ $wait_time -lt $max_wait ]; do
+              if peer lifecycle chaincode querycommitted -C ${CHANNEL_NAME} -n ${CHAINCODE_NAME} >/dev/null 2>&1; then
+                log_success "Chaincode commit detected"
+                break
+              fi
+              log_info "Waiting for chaincode commit... ($wait_time/$max_wait seconds)"
+              sleep 10
+              wait_time=$((wait_time + 10))
+            done
+            
+            if [ $wait_time -ge $max_wait ]; then
+              log_error "Timeout waiting for chaincode commit"
+              exit 1
+            fi
+            {{- end }}
+
+            # Prepare invoke arguments
+            if [ -n "${INVOKE_ARGUMENTS}" ]; then
+              # Split arguments by comma, trim spaces, and create JSON array using jq
+              ARGS=$(echo "${INVOKE_ARGUMENTS}" | jq -R 'split(",") | map(gsub("^[[:space:]]+|[[:space:]]+$"; "")) | {Args: .}' -c)
+            else
+              ARGS='{"Args":["InitLedger","[]"]}'  # Default function for testing
+            fi
+            qARGS="'${ARGS}'"
+            
+            log_info "Invoke arguments: ${ARGS}"
+            
+            # Build invoke command
+            INVOKE_CMD="peer chaincode invoke -o ${ORDERER_URL} --tls ${CORE_PEER_TLS_ENABLED} --cafile ${ORDERER_CA} --channelID ${CHANNEL_NAME} --name ${CHAINCODE_NAME} -c ${qARGS}"
+            
+            if [ "${INIT_REQUIRED}" = "true" ]; then
+              INVOKE_CMD="${INVOKE_CMD} --isInit"
+            fi
+            
+            log_info "Final invoke command: ${INVOKE_CMD}"
+      
+            # Execute invoke command with retry
+            execute_with_retry "${INVOKE_CMD}" "Invoke chaincode"
+            
+            log_success "Chaincode invoke completed successfully!"
+            log_info "======== INVOKE operation complete ========"
+          else
+            log_info "Invoke operation disabled, skipping..."
+          fi
+          log_success "Channel: ${CHANNEL_NAME}"
+          log_success "Chaincode: ${CHAINCODE_NAME}"
+          log_success "Version: ${CHAINCODE_VERSION}"
+          log_success "Sequence: ${CHAINCODE_SEQUENCE}"
+          if [ "$INVOKE_ENABLED" = "true" ]; then
+            log_success "Function Invoked: ${INVOKE_ARGUMENTS:-InitLedger}"
+          fi
+        
+        volumeMounts:
+        - name: certificates
+          mountPath: /opt/gopath/src/github.com/hyperledger/fabric/crypto
+          readOnly: true
+        - name: orderer-tls-cacert
+          mountPath: /opt/gopath/src/github.com/hyperledger/fabric/orderer/tls/orderer.crt
+          subPath: orderer.crt
+        {{ if .Values.chaincode.pdc.enabled }}
+        - name: pdcconfig
+          mountPath: /opt/pdc
+        {{ end }}
+{{- end }}

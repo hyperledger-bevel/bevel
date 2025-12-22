@@ -103,7 +103,7 @@ chaincode:
   repository:
     hostname: "github.com"
     git_username: "user"
-    url: "github.com/hyperledger/bevel-samples.git"
+    url: "github.com/hyperledger-bevel/bevel-samples.git"
     branch: "main"
     path: "."
     collectionsconfig: ""

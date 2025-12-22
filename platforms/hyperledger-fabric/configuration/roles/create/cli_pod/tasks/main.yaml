@@ -1,0 +1,24 @@
+##############################################################################################
+#  Copyright Accenture. All Rights Reserved.
+#
+#  SPDX-License-Identifier: Apache-2.0
+##############################################################################################
+
+#############################################################################################
+# This role creates value file for Cli pods
+############################################################################################
+#                      CREATE CLI POD                                                      #
+############################################################################################
+#
+############################################################################################
+
+# Create values file for cli
+- name: Create values file for cli
+  include_tasks: valuefile.yaml
+  loop: "{{ peers }}"
+  loop_control:
+    loop_var: peer
+  when: 
+    - peer.peerstatus is not defined or peer.peerstatus == 'new'
+    - peer.cli is defined
+    - peer.cli == "enabled"

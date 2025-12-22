@@ -12,12 +12,3 @@ dependencies:
         os: "{{ install_os }}"
         arch: "{{ install_arch }}"
         bin_directory: "{{ bin_install_dir }}"
-  - role: "{{playbook_dir}}/../../shared/configuration/roles/setup/aws-auth"
-    vars:
-      aws_authenticator:
-        os: "{{ install_os }}"
-        arch: "{{ install_arch }}"
-        bin_directory: "{{ bin_install_dir }}"
-      kubeconfig_path: "{{ item.k8s.config_file }}"
-      kubecontext: "{{ item.k8s.context }}"
-    when: "item.cloud_provider == 'aws'"

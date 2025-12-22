@@ -1,0 +1,26 @@
+[
+ {
+   "name": "assetCollection",
+   "policy": "OR('org1-tfMSP.member')",
+   "requiredPeerCount": 0,
+   "maxPeerCount": 1,
+   "blockToLive":1000000,
+   "memberOnlyRead": true,
+   "memberOnlyWrite": true,
+   "endorsementPolicy": {
+    "signaturePolicy":"OR('org1-tfMSP.member')"
+  }   
+},
+ {
+   "name": "org1-tfMSPPrivateCollection",
+   "policy": "OR('org1-tfMSP.member')",
+   "requiredPeerCount": 0,
+   "maxPeerCount": 1,
+   "blockToLive":3,
+   "memberOnlyRead": true,
+   "memberOnlyWrite": false,
+   "endorsementPolicy": {
+     "signaturePolicy": "OR('org1-tfMSP.member')"
+   }
+ }
+]

@@ -4,76 +4,114 @@
 #  SPDX-License-Identifier: Apache-2.0
 ##############################################################################################
 
-metadata:
-  #Provide the namespace for organization's peer
-  #Eg. namespace: org1-net
-  namespace: org1-net
-  network:
-    version: 2.2.2
-  images:
-    #Provide the valid image name and version for chaincode server
-    #Eg. <DOCKER_USERNAME>/marbles:latest
-    external_chaincode: ghcr.io/hyperledger/bevel-samples-example:1.0
-    alpineutils: ghcr.io/hyperledger/bevel-alpine:latest
-  #Provide the custom labels  
-  #NOTE: Provide labels other than name, release name , release service, chart version , chart name, run
-  #These lables will not be applied to VolumeClaimTemplate of StatefulSet as labels are automatically picked up by Kubernetes
-  #Eg. labels:
-  #      role: peer
-  labels:
+global:
+  # HLF Network Version
+  #Eg. version: 2.5.4
+  version: 2.5.4
+  #Provide the service account name which will be created.
+  serviceAccountName: vault-auth
+  cluster:
+    provider: aws  # choose from: minikube | aws | azure | gcp
+    cloudNativeServices: false # only 'false' is implemented
+  vault:
+    #Provide the type of vault
+    #Eg. type: hashicorp
+    type: hashicorp
+    #Provide the vaultrole for an organization
+    #Eg. vaultrole: org1-vault-role
+    role: vault-role
+    #Provide the vault server address
+    #Eg. vaultaddress: http://Vault-884963190.eu-west-1.elb.amazonaws.com
+    address:
+    #Provide the kubernetes auth backed configured in vault for an organization
+    #Eg. authpath: manufacturer
+    authPath: manufacturer
+    #Provide the secret engine.
+    secretEngine: secretsv2
+    #Provide the vault path where the secrets will be stored
+    secretPrefix: "data/manufacturer"
+    #Kuberenetes secret for vault ca.cert
+    #Enable or disable TLS for vault communication if value present or not
+    #Eg. tls: vaultca
+    tls: 
+
+  proxy:
+    #This will be the proxy/ingress provider. Can have values "none" or "haproxy"
+    #Eg. provider: "haproxy"
+    provider: "haproxy"
+    #This field contains the external URL of the organization
+    #Eg. externalUrlSuffix: test.blockchaincloudpoc.com
+    externalUrlSuffix: test.blockchaincloudpoc.com
+    #This field contains the external port on haproxy
+    #Eg. port: 443
+    port: 443
+
+certs:
+  # Flag indicating the re-creation of certificates.
+  refreshCertValue: false
+  orgData:
+    caAddress: ca.manufacturer-net:7051
+    caAdminUser: manufacturer-admin
+    caAdminPassword: manufacturer-adminpw
+    #Provide organization's name in lowercases
+    #Eg. orgName: manufacturer 
+    orgName: manufacturer
+    #Provide organization's type (orderer or peer)
+    #Eg. component_type: orderer
+    type: peer
+    #Provide organization's subject
+    #Eg. "O=Orderer,L=51.50/-0.13/London,C=GB"
+    componentSubject: "O=Orderer,L=51.50/-0.13/London,C=GB"
+
+image:
+  #Provide the valid image name and version for chaincode server
+  #Eg. <DOCKER_USERNAME>/marbles:latest
+  external_chaincode: ghcr.io/hyperledger/bevel-samples-example:1.0
+  #Provide the valid image name and version to read certificates from vault server 
+  #Eg. alpineUtils: ghcr.io/hyperledger/bevel-alpine:latest
+  alpineutils: ghcr.io/hyperledger/bevel-alpine:latest
+  catools: ghcr.io/hyperledger/bevel-fabric-ca:latest
+  fabrictools: ghcr.io/hyperledger/bevel-fabric-tools
+  #Provide the secret to use if private repository
+  #Eg. pullSecret: regcred
+  pullSecret:
+
+peer:
+  #Provide the name of the peer as per deployment yaml.
+  #Eg. name: peer0
+  name: peer0
+  #Provide the address of the peer who creates the channel and port to be mentioned is grpc cluster IP port
+  #Eg. address: peer0.org1-net:7051
+  address: peer0.org1-net:7051
+  #Provide the localMspId for organization
+  #Eg. localMspId: Org1MSP
+  localMspId: Org1MSP
+  #Provide the logLevel for organization's peer
+  #Eg. logLevel: info
+  logLevel: info
+  #Provide the value for tlsStatus to be true or false for organization's peer
+  #Eg. tlsStatus: true
+  tlsStatus: true
 
 chaincode:
   # Chaincode name eg. marbles
   name: example
   # Chaincode version eg. 1
   version: 1
-  # Chaincode ID generated after chaincode is installed eg. marbles:e45t6jtkwefweti34itjrefwe
-  ccid: ""
   # Path in the chaincode server container where the crypto needs to be mounted eg. /crypto
-  crypto_mount_path: ""
+  crypto_mount_path: "/secrets"
   # if tls is disabled or not | BOOLEAN | eg. true
-  tls:
-
-vault:
-  #Provide the vaultrole for an organization
-  #Eg. vaultrole: org1-vault-role
-  role: vault-role
-  #Provide the vault server address
-  #Eg. vaultaddress: http://Vault-884963190.eu-west-1.elb.amazonaws.com
-  address: ""
-  #Provide the kubernetes auth backed configured in vault for an organization
-  #Eg. authpath: devorg1-net-auth
-  authpath: devorg1-net-auth
-  #Provide the value for vault secretprefix
-  #Eg. chaincodesecretprefix: secretsv2/data/crypto/peerOrganizations/.../chaincodes/.../certificate/v1
-  chaincodesecretprefix: secretsv2/data/crypto/peerOrganizations/org1-net/chaincodes/example/certificate/v1
-  #Provide the serviceaccountname for vault
-  #Eg. serviceaccountname: vault-auth
-  serviceaccountname: vault-auth
-  #Provide the type of vault
-  #Eg. type: hashicorp
-  type: hashicorp
-  #Provide the imagesecretname for vault
-  #Eg. imagesecretname: regcred
-  imagesecretname: ""
-  #Kuberenetes secret for vault ca.cert
-  #Enable or disable TLS for vault communication if value present or not
-  #Eg. tls: vaultca
-  tls:
-
-service:
-  #Provide the servicetype for a peer
-  #Eg. servicetype: NodePort
-  servicetype: ClusterIP 
+  tls: true
+  # Pass chaincode address if already deployed
+  address:
+  #Provide the serviceType for the chaincode
+  #Eg. serviceType: NodePort
+  serviceType: ClusterIP 
   loadBalancerType: ""
-  ports:
-    grpc:
-      #Provide a nodeport for grpc service in the range of 30000-32767 (optional)
-      #Eg. nodeport: 30001
-      nodeport: 
-      #Provide a cluster IP port for grpc service to be exposed
-      #Eg. clusteripport: 7051
-      clusteripport: 7052
+  port: 7052
+  healthCheck: 
+    retries: 20
+    sleepTimeAfterError: 15
 
 labels:
   service: []

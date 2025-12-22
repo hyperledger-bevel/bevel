@@ -12,7 +12,7 @@
   - hosts: ansible_provisioners
     gather_facts: yes
     no_log: "false"
-    become: yes
+    become: no
     tasks: 
     - name: install ajv-cli
       npm: 

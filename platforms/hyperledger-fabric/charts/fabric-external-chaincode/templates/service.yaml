@@ -3,26 +3,33 @@
 #
 #  SPDX-License-Identifier: Apache-2.0
 ##############################################################################################
-
----
+{{- if empty .Values.chaincode.address }}
 apiVersion: v1
 kind: Service
 metadata:
-  name: cc-{{ $.Values.chaincode.name }}
-  namespace: {{ $.Values.metadata.namespace }} 
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  {{- if or .Values.global.proxy (and .Values.chaincode.loadBalancerType (eq .Values.chaincode.loadBalancerType "Internal")) }}
+  {{- if and .Values.chaincode.loadBalancerType (eq .Values.chaincode.loadBalancerType "Internal") }}
+    cloud.google.com/load-balancer-type: "Internal"
+  {{- end }}
+  {{- end }}
   labels:
-    run: cc-{{ $.Values.chaincode.name }}
-    app.kubernetes.io/name: cc-{{ $.Values.chaincode.name }}
-    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    run: {{ .Release.Name }}
+    app.kubernetes.io/name: {{ .Release.Name }}
+    app.kubernetes.io/component: fabric
+    app.kubernetes.io/part-of: {{ include "fabric-external-chaincode.fullname" . }}
+    app.kubernetes.io/namespace: {{ .Release.Namespace }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    {{- include "labels.custom" . | nindent 2 }}
-    {{- include "labels.service" . | nindent 2 }}
+    app.kubernetes.io/release: {{ .Release.Name }}
+    {{- include "labels.service" . | nindent 4 }}
 spec:
-  type: {{ $.Values.service.servicetype }}
+  type: {{ .Values.chaincode.serviceType }}
   selector:
-    app: cc-{{ $.Values.chaincode.name }}
+    app: {{ .Release.Name }}
   ports:
   - name: grpc
-    port: 7052
-    targetPort: 9999
+    protocol: TCP
+    port: {{ .Values.chaincode.port }}
+    targetPort: {{ .Values.chaincode.port }}
+{{- end }}

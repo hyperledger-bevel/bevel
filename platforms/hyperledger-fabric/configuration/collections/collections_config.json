@@ -1,0 +1,38 @@
+[
+  {
+    "name": "datapointCollection",
+    "policy": "OR('org4-tfMSP.member','org1-tfMSP.member')",
+    "requiredPeerCount": 1,
+    "maxPeerCount": 1,
+    "blockToLive": 0,
+    "memberOnlyRead": true,
+    "memberOnlyWrite": true,
+    "endorsementPolicy": {
+      "signaturePolicy": "OR('org4-tfMSP.member','org1-tfMSP.member')"
+    }
+  },
+  {
+    "name": "org4-tfMSP-PrivateCollection",
+    "policy": "OR('org4-tfMSP.member')",
+    "requiredPeerCount": 0,
+    "maxPeerCount": 1,
+    "blockToLive": 0,
+    "memberOnlyRead": false,
+    "memberOnlyWrite": true,
+    "endorsementPolicy": {
+      "signaturePolicy": "OR('org4-tfMSP.member')"
+    }
+  },
+  {
+    "name": "org1-tfMSP-PrivateCollection",
+    "policy": "OR('org1-tfMSP.member')",
+    "requiredPeerCount": 0,
+    "maxPeerCount": 1,
+    "blockToLive": 0,
+    "memberOnlyRead": false,
+    "memberOnlyWrite": true,
+    "endorsementPolicy": {
+      "signaturePolicy": "OR('org1-tfMSP.member')"
+    }
+  }
+]

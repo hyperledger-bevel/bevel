@@ -66,7 +66,6 @@
   delay: 30
   until: vault_result.failed == False
   when: check == "crypto_materials"
-  register: vault_retry_result
 
 # Output debug message if vault operation fails after retries
 - name: Debug information for vault failure
@@ -81,7 +80,7 @@
       Verify Vault status with 'vault status' and check that the crypto generation process completed successfully.
   when:
     - check == "crypto_materials"
-    - vault_retry_result.failed is defined and vault_retry_result.failed
+    - vault_result.failed is defined and vault_result.failed
   
 # Log success message when crypto materials are found
 - name: Log successful crypto materials check
@@ -89,7 +88,7 @@
     msg: "Successfully found crypto materials at {{ vault_path }} in Vault."
   when:
     - check == "crypto_materials"
-    - vault_retry_result.failed is not defined or not vault_retry_result.failed
+    - vault_result.failed is not defined or not vault_result.failed
 
 # This task check if certs exists in vault.
 - name: check if certs exists in vault.

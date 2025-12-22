@@ -45,7 +45,7 @@
       - "{{ values_dir }}/{{ component_name }}.yaml"
     force: true
     wait: true
-    update_repo_cache: true
+    update_repo_cache: false
     kubeconfig: "{{ kubernetes.config_file }}"
   when:
     - helm_check.status is not defined

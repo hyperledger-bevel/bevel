@@ -1,0 +1,16 @@
+##############################################################################################
+#  Copyright Accenture. All Rights Reserved.
+#
+#  SPDX-License-Identifier: Apache-2.0
+##############################################################################################
+---
+# Create value file for chaincode lifecycle 
+- name: "Create value file for chaincode approvals"
+  include_tasks: valuefile.yaml
+  vars:
+    component_peers: "{{ org.services.peers }}"
+    peer_chaincodes: "{{ peer.chaincodes }}"
+  loop: "{{ peer_chaincodes }}"
+  loop_control:
+    loop_var: chaincode
+  when: chaincode.name in item.chaincodes

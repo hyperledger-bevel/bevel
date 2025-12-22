@@ -41,8 +41,7 @@ network:
 
   # Remote connection information for orderer (will be blank or removed for orderer hosting organization)
   # For RAFT consensus, have odd number (2n+1) of orderers for consensus agreement to have a majority.
-  consensus:
-    name: raft
+  consensus: raft
   orderers:
     - orderer:
       type: orderer
@@ -65,6 +64,8 @@ network:
     consortium: SupplyChainConsortium
     channel_name: AllChannel
     channel_status: new
+    osn_creator_org: # Organization name, whose orderers will create the channel. This field is only used with version 2.5
+      name: supplychain
     chaincodes:
       - "assettransfer"
     orderers:
@@ -114,25 +115,16 @@ network:
     # Only one peer per org required for endorsement
     - organization:
       name: carrier
-      peers:
-      - peer:
-        name: peer0
-        corepeerAddress: peer0.carrier-net.org3proxy.blockchaincloudpoc.com:443
-        certificate: "/home/bevel/build/carrier/server.crt" # certificate path for peer
+      corepeerAddress: peer0.carrier-net.org3proxy.blockchaincloudpoc.com:443
+      certificate: "/home/bevel/build/carrier/server.crt" # certificate path for peer
     - organization:
       name: warehouse
-      peers:
-      - peer:
-        name: peer0
-        corepeerAddress: peer0.warehouse-net.hf.demo.aws.blockchaincloudpoc.com:443
-        certificate: "/home/bevel/build/warehouse/server.crt" # certificate path for peer
+      corepeerAddress: peer0.warehouse-net.hf.demo.aws.blockchaincloudpoc.com:443
+      certificate: "/home/bevel/build/warehouse/server.crt" # certificate path for peer
     - organization:
       name: manufacturer
-      peers:
-      - peer:
-        name: peer0
-        corepeerAddress: peer0.manufacturer-net.org2proxy.blockchaincloudpoc.com:443
-        certificate: "/home/bevel/build/manufacturer/server.crt" # certificate path for peer
+      corepeerAddress: peer0.manufacturer-net.org2proxy.blockchaincloudpoc.com:443
+      certificate: "/home/bevel/build/manufacturer/server.crt" # certificate path for peer
 
   # Allows specification of one or many organizations that will be connecting to a network.
   # If an organization is also hosting the root of the network (e.g. doorman, membership service, etc),
@@ -194,27 +186,22 @@ network:
           type: ca
           grpc:
             port: 7054      
-        consensus:
-          name: raft
         orderers:
         # This sample has multiple orderers as an example.
         # You can use a single orderer for most production implementations.
         - orderer:
           name: orderer1
           type: orderer
-          consensus: raft
           grpc:
             port: 7050
         - orderer:
           name: orderer2
           type: orderer
-          consensus: raft
           grpc:
             port: 7050
         - orderer:
           name: orderer3
           type: orderer
-          consensus: raft
           grpc:
             port: 7050
 
@@ -308,10 +295,11 @@ network:
               init_required: false
               tls: true
               upgrade_chaincode: false 
-              buildpack_path: /home/fabric-samples/asset-transfer-basic/chaincode-external/sampleBuilder  # The path where buildpacks are locally stored
               image: ghcr.io/hyperledger/bevel-samples-example:1.0
-              arguments: '\"InitLedger\",\"\"' # Init Arguments to be passed which will mark chaincode as init-required
+              arguments: "InitLedger,[]" # Init Arguments to be passed which will mark chaincode as init-required
               crypto_mount_path: /crypto  # OPTIONAL | tls: true | Path where crypto shall be mounted for the chaincode server
+              endorsements: "OR('warehouseMSP.member')"    #Endorsements (if any) provided along with the chaincode
+              collections_config: "/home/bevel/platforms/hyperledger-fabric/configuration/collections/collections_config_v1.json"
 
     - organization:
       name: carrier
@@ -400,10 +388,11 @@ network:
               init_required: false
               tls: true
               upgrade_chaincode: false 
-              buildpack_path: /home/fabric-samples/asset-transfer-basic/chaincode-external/sampleBuilder  # The path where buildpacks are locally stored
               image: ghcr.io/hyperledger/bevel-samples-example:1.0
-              arguments: '\"InitLedger\",\"\"' # Init Arguments to be passed which will mark chaincode as init-required
+              arguments: "InitLedger,[]" # Init Arguments to be passed which will mark chaincode as init-required
               crypto_mount_path: /crypto  # OPTIONAL | tls: true | Path where crypto shall be mounted for the chaincode server
+              endorsements: "OR('warehouseMSP.member')"    #Endorsements (if any) provided along with the chaincode
+              collections_config: "/home/bevel/platforms/hyperledger-fabric/configuration/collections/collections_config_v1.json"
 
     - organization:
       name: store
@@ -492,10 +481,11 @@ network:
               init_required: false
               tls: true
               upgrade_chaincode: false 
-              buildpack_path: /home/fabric-samples/asset-transfer-basic/chaincode-external/sampleBuilder  # The path where buildpacks are locally stored
               image: ghcr.io/hyperledger/bevel-samples-example:1.0
-              arguments: '\"InitLedger\",\"\"' # Init Arguments to be passed which will mark chaincode as init-required
+              arguments: "InitLedger,[]" # Init Arguments to be passed which will mark chaincode as init-required
               crypto_mount_path: /crypto  # OPTIONAL | tls: true | Path where crypto shall be mounted for the chaincode server
+              endorsements: "OR('warehouseMSP.member')"    #Endorsements (if any) provided along with the chaincode
+              collections_config: "/home/bevel/platforms/hyperledger-fabric/configuration/collections/collections_config_v1.json"
     - organization:
       name: warehouse
       country: US
@@ -577,7 +567,8 @@ network:
               init_required: false
               tls: true
               upgrade_chaincode: false 
-              buildpack_path: /home/fabric-samples/asset-transfer-basic/chaincode-external/sampleBuilder  # The path where buildpacks are locally stored
               image: ghcr.io/hyperledger/bevel-samples-example:1.0
-              arguments: '\"InitLedger\",\"\"' # Init Arguments to be passed which will mark chaincode as init-required
+              arguments: "InitLedger,[]" # Init Arguments to be passed which will mark chaincode as init-required
               crypto_mount_path: /crypto  # OPTIONAL | tls: true | Path where crypto shall be mounted for the chaincode server
+              endorsements: "OR('warehouseMSP.member')"    #Endorsements (if any) provided along with the chaincode
+              collections_config: "/home/bevel/platforms/hyperledger-fabric/configuration/collections/collections_config_v1.json"

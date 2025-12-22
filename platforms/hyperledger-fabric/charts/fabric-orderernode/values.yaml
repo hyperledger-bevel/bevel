@@ -44,6 +44,11 @@ global:
     externalUrlSuffix: test.blockchaincloudpoc.com
 
 storage:
+  #Flag to create new storage class for organization. Set to false for existing storage class.
+  #Eg. enabled: true
+  enabled: true
+  # Name override for storageclass
+  nameOverride: aws-storageclass
   #Provide storage size for Orderer Volume
   #Eg. size: 512Mi
   size: 512Mi

@@ -1,0 +1,15 @@
+##############################################################################################
+#  Copyright Accenture. All Rights Reserved.
+#
+#  SPDX-License-Identifier: Apache-2.0
+##############################################################################################
+---
+# Create value file for chaincode lifecycle 
+- name: "Create value file for chaincode lifecycle"
+  include_tasks: nested_valuefile.yaml
+  vars:      
+    name: "{{ org.name | lower }}"
+    namespace: "{{ org.name | lower }}-net"
+    component_type: "peer"
+    peer: "{{ org.services.peers | first }}" # Only one peer needed to approve/commit/invoke
+  when: peer.chaincodes is defined

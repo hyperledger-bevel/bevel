@@ -20,7 +20,7 @@
   no_log: "{{ no_ansible_log | default(false) }}"
   tasks:
 
-    # delete build directory
+    # # delete build directory
     - name: Remove build directory
       file:
         path: "./build"
@@ -51,6 +51,20 @@
         loop_var: org
       when: 
       - org.org_status is not defined or org.org_status == 'new'
+
+    # Create Storageclass for orgs
+    - name: "Create storageclass for each new organization"
+      include_role:
+        name: "{{ playbook_dir }}/../../../platforms/shared/configuration/roles/setup/storageclass"  
+      vars:
+        org_name: "{{ org.name | lower }}"
+        sc_name: "{{ org_name }}-bevel-storageclass"
+        region: "{{ org.k8s.region | default('eu-west-2') }}"
+      loop: "{{ network['organizations'] }}"
+      loop_control:
+        loop_var: org
+      when: 
+      - org.org_status is not defined or org.org_status == 'new'
         
     # Create CA Server helm-value files and check-in
     - name: Create CA server for each organization
@@ -59,6 +73,7 @@
       vars:
         component_ns: "{{ org.name | lower}}-net"
         component: "{{ org.name | lower}}"
+        sc_name: "{{ component }}-bevel-storageclass"
         component_services: "{{ org.services }}"
         kubernetes: "{{ org.k8s }}"
         vault: "{{ org.vault }}"
@@ -79,16 +94,6 @@
         prompt: "Sleeping... so that the client certificates are valid"
         minutes: 6
 
-    # Generate script to modify the fetched configuration block
-    - include_role:
-        name: "create/new_organization/create_block"
-      vars:
-        build_path: "./build"
-        participants: "{{ channel.participants }}"
-        channel_name: "{{ channel.channel_name | lower}}"
-      loop: "{{ network['channels'] }}"
-      loop_control:
-        loop_var: channel
 
     # This role creates the value file for peers of organisations and write couch db credentials
     # to the vault.
@@ -97,9 +102,11 @@
         name: "create/peers"
       vars:
         build_path: "./build"
-        namespace: "{{ org.name | lower}}-net"
-        component_type: "{{ org.type | lower}}"
+        namespace: "{{ org.name | lower }}-net"
+        component_type: "{{ org.type | lower }}"
         component_services: "{{ org.services }}"
+        sc_name: "{{ org.name | lower }}-bevel-storageclass"
+        first_orderer: "{{ network.orderers | first }}"
         kubernetes: "{{ org.k8s }}"
         vault: "{{ org.vault }}"
         git_protocol: "{{ org.gitops.git_protocol }}"
@@ -122,36 +129,36 @@
         org: "{{ network['organizations'] | first }}"
         docker_url: "{{ network.docker.url }}"
         kubernetes: "{{ org.k8s  }}"
-        generateGenisis: false
-      when: genererate_configtx is defined and genererate_configtx == 'true'
+        generateGenesis: false
+      when: generate_configtx is defined and generate_configtx == 'true'
 
-    # This role is to start the existing peer cli
-    # Fetch the configuration block and modify the block
-    - include_role:
-        name: "setup/config_block/fetch"
-      vars:
-        build_path: "./build"
-        participants: "{{ item.participants }}"
-        docker_url: "{{ network.docker.url }}"
-      loop: "{{ network['channels'] }}"
+    # # This role is to start the existing peer cli
+    # # Fetch the configuration block and modify the block
+    # - include_role:
+    #     name: "setup/config_block/fetch"
+    #   vars:
+    #     build_path: "./build"
+    #     participants: "{{ item.participants }}"
+    #     docker_url: "{{ network.docker.url }}"
+    #   loop: "{{ network['channels'] }}"
 
-     # This role fetch the block from the ansible host and get it signed from each existing organization admin
-    - include_role:
-        name: "setup/config_block/sign_and_update"
-      vars:
-        build_path: "./build"
-        participants: "{{ item.participants }}"
-        docker_url: "{{ network.docker.url }}"
-      loop: "{{ network['channels'] }}"      
+    #  # This role fetch the block from the ansible host and get it signed from each existing organization admin
+    # - include_role:
+    #     name: "setup/config_block/sign_and_update"
+    #   vars:
+    #     build_path: "./build"
+    #     participants: "{{ item.participants }}"
+    #     docker_url: "{{ network.docker.url }}"
+    #   loop: "{{ network['channels'] }}"      
 
-    # This role fetches block 0 and joins peers of new organizaion to the channel
-    - include_role:
-        name: "create/channels_join"
-      vars:
-        build_path: "./build"
-        participants: "{{ item.participants }}"
-        docker_url: "{{ network.docker.url }}"
-      loop: "{{ network['channels'] }}"
+    # # This role fetches block 0 and joins peers of new organizaion to the channel
+    # - include_role:
+    #     name: "create/channels_join"
+    #   vars:
+    #     build_path: "./build"
+    #     participants: "{{ item.participants }}"
+    #     docker_url: "{{ network.docker.url }}"
+    #   loop: "{{ network['channels'] }}"
 
   vars: # These variables can be overriden from the command line
     privilege_escalate: false           # Default to NOT escalate to root privledges
@@ -159,4 +166,4 @@
     install_arch:  "amd64"              # Default to amd64 architecture
     bin_install_dir:  "~/bin"           # Default to /bin install directory for binaries
     add_new_org: "true"                 # Default to true
-    genererate_configtx: "true" 
+    generate_configtx: "true" 

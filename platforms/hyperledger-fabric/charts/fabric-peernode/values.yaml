@@ -50,6 +50,8 @@ storage:
   #Flag to create new storage class for organization. Set to false for existing storage class.
   #Eg. enabled: true
   enabled: true
+  # Name override for storageclass
+  nameOverride: aws-storageclass
   #Provide storage size for Peer Volume
   #Eg. peer: 512Mi
   peer: 512Mi
@@ -113,7 +115,7 @@ image:
   couchdb: ghcr.io/hyperledger/bevel-fabric-couchdb
   #Provide the valid repository for fabric peer
   #Eg. peer: hyperledger/fabric-peer
-  peer: ghcr.io/hyperledger/bevel-fabric-peer
+  peer: hyperledger/fabric-peer
   #Provide the valid image name and version to read certificates from vault server 
   #Eg. alpineUtils: ghcr.io/hyperledger/bevel-alpine:latest
   alpineUtils: ghcr.io/hyperledger/bevel-alpine:latest
@@ -137,7 +139,7 @@ peer:
   #Flag to enable CLI for this peer
   #Eg. cliEnabled: true
   cliEnabled: false
-  #Provide the address for orderer; optional is cliEnabled: false
+  #Provide the address for orderer; optional if cliEnabled: false
   #Eg. ordererAddress: orderer1.test.blockchaincloudpoc.com:443
   ordererAddress: orderer1.supplychain-net:7050
   #Provide a valid chaincode builder image for Fabric

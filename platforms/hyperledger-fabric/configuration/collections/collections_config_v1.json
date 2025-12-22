@@ -1,0 +1,14 @@
+[
+  {
+    "name": "org1-tfMSP-PrivateCollection",
+    "policy": "OR('org1-tfMSP.member')",
+    "requiredPeerCount": 0,
+    "maxPeerCount": 1,
+    "blockToLive": 0,
+    "memberOnlyRead": false,
+    "memberOnlyWrite": true,
+    "endorsementPolicy": {
+      "signaturePolicy": "OR('org1-tfMSP.member')"
+    }
+  }
+]

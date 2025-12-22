@@ -63,6 +63,11 @@ RUN (set -x; cd "$(mktemp -d)" && \
     tar zxvf "${KREW}.tar.gz" && \
     ./"${KREW}" install krew)
 
+# Create local user ubuntu
+ARG USER_ID=1000
+ARG GROUP_ID=1000
+RUN groupadd -g ${GROUP_ID} ubuntu \
+ && useradd -m -u ${USER_ID} -g ubuntu -s /bin/bash ubuntu
 # Copy the provisional script to build container
 COPY ./run.sh /home
 COPY ./reset.sh /home
@@ -70,7 +75,7 @@ RUN chmod 755 /home/run.sh
 RUN chmod 755 /home/reset.sh
 
 ENV JAVA_HOME=/home/jdk-14
-ENV PATH=~/.krew/bin:/home/jdk-14/bin:/root/bin:/root/.local/bin/:$PATH
+ENV PATH=~/.krew/bin:/home/jdk-14/bin:/root/bin:/root/.local/bin/:/home/ubuntu/bin:$PATH
 
 # The mounted repo should contain a build folder with the following files
 # 1) K8s config file as config
@@ -79,4 +84,5 @@ ENV PATH=~/.krew/bin:/home/jdk-14/bin:/root/bin:/root/.local/bin/:$PATH
 
 #path to mount the repo
 VOLUME /home/bevel/
+USER ubuntu
 CMD ["/home/run.sh"]

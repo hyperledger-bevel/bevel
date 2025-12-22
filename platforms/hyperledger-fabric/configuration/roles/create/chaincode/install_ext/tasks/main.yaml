@@ -1,28 +1,10 @@
 ###########################################################################################
-# Create package file
-- name: Create package file
-  include_tasks: create_package.yaml
-  vars:
-    first_peer: "{{ peers[0] }}"
-    chaincode_name: "{{ chaincode.name | lower }}"
-    package_dir: "./build/tmp/package/{{ org_ns }}"
-    package_name: "{{ chaincode.name | lower }}_{{ chaincode.version }}"
-  loop: "{{ peers[0].chaincodes }}"
-  loop_control:
-    loop_var: chaincode
-  when: 
-    - peers is defined
-    - peers | length > 0 
-    - peers[0].chaincodes is defined
-
 # Install the external chaincode details
-- name: Install the external chaincode details
+- name: Install the external chaincode package and server
   include_tasks: nested_main.yaml
   vars:
-    chaincode_name: "{{ peer.chaincode.name | lower }}"
-    chaincode_version: "{{ peer.chaincode.version }}"
-    envspace: "{{ envspace }}"
-  loop: "{{ peers }}"
+    peer_chaincodes: "{{ peer.chaincodes }}"
+  loop: "{{ component_peers }}"
   loop_control:
     loop_var: peer
   when: 

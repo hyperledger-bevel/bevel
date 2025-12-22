@@ -1,0 +1,67 @@
+##############################################################################################
+#  Copyright Accenture. All Rights Reserved.
+#
+#  SPDX-License-Identifier: Apache-2.0
+##############################################################################################
+---
+# Check if all endorser certs are present
+- name: "Check if all endorser certs exists"
+  stat:
+    path: "{{ endorser.certificate }}"
+  register: check_cert
+  failed_when: check_cert.stat.exists == false
+  loop: "{{ endorsers }}"
+  loop_control:
+    loop_var: endorser
+  when:
+    - endorsers is defined
+
+# Check if pdc collection config file exists, if provided
+- name: "Check if pdc collections config file exists"
+  stat:
+    path: "{{ chaincode.collections_config }}"
+  register: check_file
+  failed_when: check_file.stat.exists == false
+  when:
+    - chaincode.collections_config is defined
+
+# Log debug message when a PDC collection config file doesn't exist
+- name: "Debug PDC collection config file not found"
+  debug:
+    msg: "PDC collection config file not found at {{ chaincode.collections_config }}. Please verify the path and file contents."
+  when:
+    - chaincode.collections_config is defined
+    - check_file.stat.exists == false
+
+# Create value file for chaincode lifecycle
+- name: "Create value file for chaincode lifecycle"
+  include_role:
+    name: "{{ playbook_dir }}/../../shared/configuration/roles/create/job_component"
+  vars:    
+    name: "{{ org.name | lower }}"
+    type: "lifecycle_chaincode_job"
+    component_name: "{{ item.channel_name|lower }}-{{ peer.name }}{{ chaincode.name}}{{ chaincode.version }}-{{ chaincode.sequence | default('1') }}"
+    component_ns: "{{ org.name |lower }}-net"
+    peer_name: "{{ peer.name }}"
+    peer_address: "{{ peer.name }}.{{ org.name |lower }}-net:{{ peer.grpc.port }}"
+    git_protocol: "{{ org.gitops.git_protocol }}"
+    git_url: "{{ org.gitops.git_url }}"
+    git_branch: "{{ org.gitops.branch }}"
+    charts_dir: "{{ org.gitops.chart_source }}"
+    endorsers_list: "{{ endorsers }}"
+    vault: "{{ org.vault }}"
+    kubernetes: "{{ org.k8s }}"
+    values_dir: "{{ playbook_dir }}/../../../{{ org.gitops.component_dir }}/{{ org.name | lower }}"
+    pdc_config_content: "{{ lookup('file', '{{ chaincode.collections_config }}') | b64encode }}"
+  when:
+    - chaincode is defined
+    - chaincode.external_chaincode
+
+# Git Push : Push the above generated files to git directory 
+- name: Git Push
+  include_role: 
+    name: "{{ playbook_dir }}/../../shared/configuration/roles/git_push"
+  vars:
+    GIT_DIR: "{{ playbook_dir }}/../../../"
+    gitops: "{{ org.gitops }}"
+    msg: "[ci skip] Pushing chaincode lifecycle files"

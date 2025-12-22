@@ -1,0 +1,54 @@
+global:
+  version: 2.5.4
+  serviceAccountName: vault-auth
+  cluster:
+    provider: aws
+    cloudNativeServices: false
+  vault:
+    type: hashicorp
+    network: fabric
+    address: http://ab200c0faaff9494e8fdd94cfdab5871-2042771978.eu-west-2.elb.amazonaws.com:8200
+    authPath: e01org4-tf
+    secretEngine: kv
+    secretPrefix: "data/e01org4-tf"
+    role: vault-role
+    tls: false
+  proxy:
+    provider: none
+    externalUrlSuffix: org4proxy.blockchaincloudpoc.com
+
+certs:
+  refreshCertValue: false
+  orgData:
+    caAddress: ca.org4-tf-net:7054
+    caAdminUser: org4-tf-admin
+    caAdminPassword: org4-tf-adminpw
+    orgName: org4-tf
+    type: peer
+    componentSubject: "O=org4-tf,OU=org4-tf,L=New York,C=US"
+
+image:
+  alpineUtils: ghcr.io/hyperledger/bevel-alpine:latest
+  catools: ghcr.io/hyperledger/bevel-fabric-ca:latest
+  fabrictools: ghcr.io/hyperledger/bevel-fabric-tools
+  external_chaincode: 339712881589.dkr.ecr.eu-west-2.amazonaws.com/tf-chaincode:1.0.141
+  pullSecret: ""
+
+peer:
+  name: peer0
+  address: peer0.org4-tf-net:7051
+  localMspId: org4-tfMSP
+  logLevel: info
+  tlsStatus: true
+
+chaincode:
+  name: efcc
+  version: "1.0"
+  crypto_mount_path: "/crypto"
+  tls: true
+  serviceType: ClusterIP
+  port: 7052
+  healthCheck: 
+    retries: 20
+    sleepTimeAfterError: 15
+  

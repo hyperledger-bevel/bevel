@@ -31,7 +31,7 @@
         namespace: "{{ item.name | lower }}-net"
         kubernetes: "{{ item.k8s }}"
         label_selectors:
-          - name = {{ component_name }}
+          - app = {{ component_name }}
         vault: "{{ item.vault }}"
         ca: "{{ item.services.ca }}"
       loop: "{{ network['organizations'] }}"
@@ -48,7 +48,7 @@
         namespace: "{{ item.name | lower }}-net"
         kubernetes: "{{ item.k8s }}"
         label_selectors:
-          - name = {{ component_name }}
+          - app = {{ component_name }}
         vault: "{{ item.vault }}"
         ca: "{{ item.services.ca }}"
       loop: "{{ network['organizations'] }}"

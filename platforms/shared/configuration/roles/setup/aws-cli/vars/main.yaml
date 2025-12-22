@@ -9,4 +9,4 @@ tmp_directory: "{{ lookup('env', 'TMPDIR') | default('/tmp',true) }}"
 
 aws_cli:
   bin_directory: "{{ bin_install_dir | default('~/bin') }}" # Default to ~/bin install directory for binaries
-  install_arch: "x86_64"  # Use aarch64 for Linux ARM
+  install_arch: "x86_64"  # Use aarch64 for Linux ARM, x86_64 for AMD

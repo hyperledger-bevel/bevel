@@ -38,7 +38,7 @@
     loop: "{{ network.organizations }}"
     loop_control:
       loop_var: org
-    when: org.type == 'orderer' and '2.5.' not in network.version
+    when: not network.version.startswith('2.5.')
 
   # This role creates value file new orderer
   - name: "create new orderer"
@@ -47,11 +47,12 @@
     vars:
       build_path: "./build"
       namespace: "{{ org.name | lower}}-net"
-      component_type: "{{ org.type | lower}}"
       org_name: "{{ org.name | lower }}"
+      sc_name: "{{ org_name }}-bevel-storageclass"
       component_services: "{{ org.services }}"
       kubernetes: "{{ org.k8s }}"
       vault: "{{ org.vault }}"
+      sys_channel_name: "syschannel"
       git_protocol: "{{ org.gitops.git_protocol }}"
       git_url: "{{ org.gitops.git_url }}"
       git_branch: "{{ org.gitops.branch }}"
@@ -77,7 +78,7 @@
     loop: "{{ network.organizations }}"
     loop_control:
       loop_var: org
-    when: org.type == 'orderer' and '2.5.' not in network.version
+    when: not network.version.startswith('2.5.')
 
   # This role creates the value file for creating channel from creator organization
   # to the vault.
@@ -88,7 +89,7 @@
       build_path: "./build"
       docker_url: "{{ network.docker.url }}"
     loop: "{{ network['channels'] }}"
-    when: add_new_org == 'false' and '2.5.' in network.version
+    when: add_new_org == 'false' and network.version.startswith('2.5.')
 
   # Generate script to modify the fetched configuration block from application channel
   - name: "Modify the application channel with tls and address information of new orderer"
@@ -105,7 +106,7 @@
     loop: "{{ network.channels }}"
     loop_control:
       loop_var: channel
-    when: '2.5.' not in network.version
+    when: not network.version.startswith('2.5.')
 
   vars: #These variables can be overriden from the command line
     add_new_org: 'false'                #Default for this playbook is false

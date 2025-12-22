@@ -11,3 +11,7 @@
 - name: Set Variable channel_name_value
   include_tasks: valuefile.yaml
   when: channel.osn_creator_org.name == org.name and '2.5.' in network.version
+
+- name: Set Variable channel_name_value
+  include_tasks: valuefile.yaml
+  when: add_new_org == 'true' and '2.5.' in network.version

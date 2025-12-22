@@ -74,7 +74,7 @@
     channel_name: "{{item.channel_name}}"
     component_ns: "{{ peer.name | lower}}-net"
     peer_name: "{{ peer | json_query('peers[*].name') | first }}"
-    peer_adress: "{{ peer | json_query('peers[*].peerAddress') | first }}"
+    peer_address: "{{ peer | json_query('peers[*].peerAddress') | first }}"
     git_protocol: "{{ org.gitops.git_protocol }}"
     git_url: "{{ org.gitops.git_url }}"
     git_branch: "{{ org.gitops.branch }}"

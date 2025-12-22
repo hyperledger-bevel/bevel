@@ -16,45 +16,6 @@
   gather_facts: no
   no_log: "{{ no_ansible_log | default(false) }}"
   tasks:
-    # Create or get Orderer crypto materials
-    - include_role:
-        name: "create/crypto/orderer"
-      vars:
-        component_name: "{{ item.name | lower}}-net"
-        component_type: "{{ item.type | lower}}"
-        org_name: "{{ item.name }}"
-        services: "{{ item.services }}"
-        subject: "{{ item.subject }}"
-        ca_url: "{{ item.ca_data.url }}"
-        kubernetes: "{{ item.k8s }}"
-        vault: "{{ item.vault }}"
-      loop: "{{ network['organizations'] }}"
-      when: item.type == 'orderer'
-    
-    # Create or get Organization crypto materials
-    - include_role:
-        name: "create/crypto/peer"
-      vars:
-        component_name: "{{ item.name | lower}}-net"
-        component_type: "{{ item.type | lower}}"
-        org_name: "{{ item.name }}"
-        services: "{{ item.services }}"
-        subject: "{{ item.subject }}"
-        ca_url: "{{ item.ca_data.url }}"
-        kubernetes: "{{ item.k8s }}"
-        vault: "{{ item.vault }}"
-        add_new_org: "false"
-      loop: "{{ network['organizations'] }}"
-      when: item.type == 'peer'
-
-    #Creating channel artifacts
-    # This role creates configtx.yaml file as the requirements mentioned in network.yaml
-    # which is then consumed by configtxgen tool
-    - include_role:
-        name: "create/configtx"
-      vars:
-        config_file: "./build/configtx.yaml"
-
     # This role generate channeltx
     - include_role:
         name: "create/channel_artifacts"
@@ -88,7 +49,6 @@
         docker_url: "{{ network.docker.url }}"
         participants: "{{ item.participants }}"
       loop: "{{ network['channels'] }}"
-      when: item.channel_status == 'new'
       
     # delete build directory
     - name: Remove build directory

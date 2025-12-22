@@ -33,14 +33,16 @@ orderers:
   - name: {{ value }}
     adminAddress: {{ value }}.{{ component_ns }}:7055
 {% endif %}
+{% if key == 'ordererAddress' %}
+    ordererAddress: {{ value }}
+{% endif %}
 {% endfor %}
 {% endfor %}
 
-addOrderer: {{ add_orderer_value }}
-
-{% if add_orderer_value is defined and add_orderer_value is sameas true  %}
+{% if add_orderer_value is defined and add_orderer_value %}
 orderer:
+  addOrderer: {{ add_orderer_value }}
   name: {{ first_orderer.name }}
   localMspId: {{ org.name | lower}}MSP
-  address: {{ existingOrdererAddress }}
+  ordererAddress: {{ existingOrdererAddress }}
 {% endif %}

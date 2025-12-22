@@ -17,7 +17,7 @@
     org_name: "{{ item.name | lower }}"
     component_name: "{{ orderer.name }}-{{ org_name }}"
     type: "orderers"
-    consensus: "{{ component_services.consensus }}"
+    consensus: "{{ network.consensus }}"
     genesis: "{{ lookup('file', '{{ build_path }}/channel-artifacts/{{ channel_name }}.genesis.block.base64') }}"
 
 # Git Status : check if there is any files modified in the directory

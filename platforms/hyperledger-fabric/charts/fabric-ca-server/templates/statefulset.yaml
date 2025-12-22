@@ -286,7 +286,7 @@ spec:
         {{- include "labels.pvc" . | nindent 8 }}
     spec:
       accessModes: ["ReadWriteOnce"]
-      storageClassName: storage-{{ .Release.Name }}
+      storageClassName: {{ .Values.storage.nameOverride }}
       resources:
         requests:
           storage: "{{ .Values.storage.size }}"

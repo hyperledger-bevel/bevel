@@ -1,0 +1,69 @@
+# Set Variable existing_cli and existing_cli_dependency to empty
+- name: "Set Variables existing_cli and existing_cli_dependency to empty"
+  set_fact:
+    existing_cli: ""
+    existing_cli_dependency: ""
+
+# Check if pods are present or not
+- name: 'checking for job {{ component_name }} in {{ component_ns }}'
+  k8s_info:
+    kind: "Pod"
+    namespace: "{{ component_ns }}"
+    kubeconfig: "{{ kubernetes.config_file }}"
+    context: "{{ kubernetes.context }}"
+    label_selectors:
+      - app = cli
+      - app.kubernetes.io/name={{ peer.name | lower}}
+  vars:
+    name: "cli"
+    kubernetes: "{{ org.k8s }}"
+    component_name: "{{ peer.name | lower}}-{{ org.name | lower }}"
+    component_ns: "{{ org.name | lower}}-net"
+  register: existing_cli_dependency
+
+# Check if pods are present or not
+- name: 'checking for job {{ component_name }} in {{ component_ns }}'
+  k8s_info:
+    kind: "Pod"
+    namespace: "{{ component_ns }}"
+    kubeconfig: "{{ kubernetes.config_file }}"
+    context: "{{ kubernetes.context }}"
+    label_selectors:
+      - app = cli
+      - app.kubernetes.io/name={{ component_name }}
+  vars:
+    name: "cli"
+    kubernetes: "{{ org.k8s }}"
+    component_name: "{{ peer.name | lower}}-{{ org.name | lower }}"
+    component_ns: "{{ org.name | lower}}-net"
+  register: existing_cli
+
+# Create the value file
+- name: "Create Value file for CLI Pod"
+  include_role:
+    name: helm_component
+  vars:
+    name: "cli"
+    component: "{{ org.name | lower}}"
+    component_name: "{{ peer.name | lower}}-{{ org.name | lower}}"
+    orderer: "{{ network.orderers | first }}"
+    sc_name: "{{ component }}-bevel-storageclass"
+    component_ns: "{{ org.name | lower}}-net"
+    git_protocol: "{{ org.gitops.git_protocol }}"
+    git_url: "{{ org.gitops.git_url }}"
+    git_branch: "{{ org.gitops.branch }}"
+    vault: "{{ org.vault }}"
+    charts_dir: "{{ org.gitops.chart_source }}"
+    values_dir: "{{playbook_dir}}/../../../{{org.gitops.release_dir}}/{{ org.name | lower }}"
+    type: "cli"
+  when:
+    - existing_cli.resources | length == 0 and existing_cli_dependency.resources | length == 0
+
+# Git Push : Push the above generated files to git directory
+- name: Git Push
+  include_role:
+    name: "{{ playbook_dir }}/../../shared/configuration/roles/git_push"
+  vars:
+    GIT_DIR: "{{ playbook_dir }}/../../../"
+    gitops: "{{ org.gitops }}"
+    msg: "[ci skip] Pushing CLI value files"

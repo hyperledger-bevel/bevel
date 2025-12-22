@@ -8,18 +8,6 @@
 # This role creates value file for zkKafka and orderer
 #############################################################################################
 
-# Check if CA server is available
-- name: "waiting for the CA server to be created in {{ org.name | lower }}-net"
-  include_role:
-    name: "{{ playbook_dir }}/../../shared/configuration/roles/check/helm_component"
-  vars:
-    component_type: "Pod"
-    namespace: "{{ org.name | lower }}-net"
-    component_name: "{{ component_services.ca.name }}"
-    label_selectors:
-      - app = {{ component_name }}
-  when: add_peer is not defined or add_peer != 'true'
-
 # Set Variable first_orderer
 - name: "Set Variable first_orderer"
   set_fact:
@@ -52,8 +40,8 @@
     sc_name: "{{ org_name }}-bevel-storageclass"
     component_name: "zkkafka"
     type: "zkkafka"
-    consensus: "{{component_services.consensus}}"
-  when: component_services.consensus.name == 'kafka' and component_services.consensus is defined
+    consensus: "{{network.consensus}}"
+  when: network.consensus == 'kafka'
 
 # Create the value file for the Orderers as per requirements mentioned in network.yaml
 - name: "create orderers"
@@ -64,14 +52,14 @@
     org_name: "{{ org.name | lower }}"
     component_name: "{{ orderer.name | lower  }}"
     type: "orderers"
-    consensus: "{{component_services.consensus}}"
+    consensus: "{{network.consensus}}"
     component_subject: "{{ org.subject | quote }}"
     create_configmaps: "{{ true if first_orderer == orderer.name and (add_orderer is not defined or add_orderer == 'false') else false }}"
   loop: "{{ component_services.orderers }}"
   loop_control:
     loop_var: orderer
   when: 
-    - component_services.orderers is defined and component_services.consensus is defined
+    - component_services.orderers is defined
     - orderer.status is not defined or orderer.status == 'new'
 
 # Git Push: Push the above generated files to git directory 

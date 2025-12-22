@@ -39,7 +39,7 @@
     else
         echo -n "{\"host\":\"{{ peer.peerAddress.split(":")[0] | to_json }}\",\"port\":{{ peer.peerAddress.split(":")[1] | to_json }}}" >> {{ build_path }}/channel-artifacts/{{ channel_name | lower}}-anchorfile.json
     fi
-  loop: "{{ org.services.peers }}"
+  loop: "{{ participant.peers }}"
   loop_control:
     loop_var: peer
   when: peer.type == 'anchor'

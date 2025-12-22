@@ -24,7 +24,7 @@
     name: k8_component
   vars:
     component_type_name: "{{ participant.name }}"
-    component_type: "existing_peer_cli_job"    
+    component_type: "existing_peer_cli_job"
     component_name: "cli-{{ channel_name }}-{{ org.name }}-{{ peer.name }}"
     peer_name: "{{ peer.name }}"
     vault: "{{ org.vault }}"    

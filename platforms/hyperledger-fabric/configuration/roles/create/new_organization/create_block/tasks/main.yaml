@@ -13,9 +13,7 @@
   include_tasks: create_json.yaml
   vars:
     channel_name: "{{ channel.channel_name | lower }}"
-    org_query: "organizations[?name=='{{participant.name}}']"
-    component_ns: "{{ org.name | lower }}-net"
-    org: "{{ network | json_query(org_query) | first }}"
+    component_ns: "{{ participant.name | lower }}-net"
   loop: "{{ participants }}"
   loop_control:
     loop_var: participant

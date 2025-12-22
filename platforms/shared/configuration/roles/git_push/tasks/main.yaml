@@ -19,11 +19,11 @@
     export GIT_SSH_COMMAND='ssh -i {{ gitops.private_key }}'
     git config user.email {{ gitops.email }}
     git config user.name {{ gitops.username }}
-    git --git-dir={{ GIT_DIR }}/.git pull
-    git --git-dir={{ GIT_DIR }}/.git add -A .
-    
-    git --git-dir={{ GIT_DIR }}/.git commit -s -m "{{ msg }}" || true
-    git --git-dir={{ GIT_DIR }}/.git push {{ gitops.git_url }} HEAD:{{ gitops.branch }}  
+    git add -A .
+    git commit -s -m "{{ msg }}" || true
+
+    git pull
+    git push {{ gitops.git_url }} HEAD:{{ gitops.branch }}  
   register: GIT_OUTPUT_SSH
   when: 
   - gitops.git_protocol is defined 
@@ -36,13 +36,13 @@
   shell: |
     cd "{{ GIT_DIR }}"
     echo "---------------GIT PUSH---------------"
-    git config user.email {{ gitops.email }}
-    git config user.name {{ gitops.username }}
-    git --git-dir={{ GIT_DIR }}/.git pull
-    git --git-dir={{ GIT_DIR }}/.git add -A .
-    
-    git --git-dir={{ GIT_DIR }}/.git commit -s -m "{{ msg }}" || true
-    git --git-dir={{ GIT_DIR }}/.git push https://{{ gitops.username }}:{{ gitops.password }}@{{ gitops.git_repo }} HEAD:{{ gitops.branch }}
+    git config --global user.email {{ gitops.email }}
+    git config --global user.name {{ gitops.username }}
+    git add -A .
+    git commit -s -m "{{ msg }}" || true
+
+    git pull https://{{ gitops.username }}:{{ gitops.password }}@{{ gitops.git_repo }} {{ gitops.branch }}
+    git push https://{{ gitops.username }}:{{ gitops.password }}@{{ gitops.git_repo }} HEAD:{{ gitops.branch }}
   
   register: GIT_OUTPUT
   when: gitops.git_protocol is not defined or gitops.git_protocol == "https"
