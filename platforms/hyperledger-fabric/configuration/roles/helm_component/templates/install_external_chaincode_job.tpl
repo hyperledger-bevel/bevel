@@ -35,8 +35,8 @@ spec:
       address: {{ vault.url }}
       authpath: {{ item.k8s.cluster_id | default('')}}{{ network.env.type }}{{ item.name | lower }}
       chaincodesecretprefix: {{ vault.secret_path | default('secretsv2') }}/data/{{ item.name | lower }}/peerOrganizations/{{ namespace }}/peers/{{ peer_name }}.{{ namespace }}/chaincodes
-      adminsecretprefix: {{ vault.secret_path | default('secretsv2') }}/data/{{ item.name | lower }}/peerOrganizations/{{ namespace }}/users/admin 
-      orderersecretprefix: {{ vault.secret_path | default('secretsv2') }}/data/{{ item.name | lower }}/peerOrganizations/{{ namespace }}/orderer
+      adminsecretprefix: {{ vault.secret_path | default('secretsv2') }}/data/{{ network.env.type }}{{ item.name | lower }}/users/admin
+      orderersecretprefix: {{ vault.secret_path | default('secretsv2') }}/data/{{ network.env.type }}{{ item.name | lower }}/orderer
       serviceaccountname: vault-auth
       type: {{ vault.type | default("hashicorp") }}
 {% if network.docker.username is defined and network.docker.password is defined %}
