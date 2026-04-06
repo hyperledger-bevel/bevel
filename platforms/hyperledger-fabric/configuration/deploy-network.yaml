@@ -130,6 +130,42 @@
         kubernetes: "{{ org.k8s  }}"
         generateGenisis: true
 
+    # This role creates the value file for creating channel from creator organization
+    # to the vault.
+    - name: Create all create-channel jobs
+      include_role:
+        name: "create/channels"
+      vars:
+        build_path: "./build"
+        participants: "{{ item.participants }}"
+        docker_url: "{{ network.docker.url }}"
+        channel_name: "{{ item.channel_name | lower }}"
+      loop: "{{ network['channels'] }}"
+      when: item.channel_status == 'new' and ('2.2.' in network.version or '1.4.' in network.version)
+
+    # This role creates the value file for creating channel from creator organization
+    # to the vault.
+    - name: Create all osnadmin create-channel jobs
+      include_role:
+        name: "create/osnchannels"
+      vars:
+        build_path: "./build"
+        docker_url: "{{ network.docker.url }}"
+      loop: "{{ network['channels'] }}"
+      when: item.channel_status == 'new' and '2.5.' in network.version
+
+    # This role creates the value file for joining channel from each participating peer
+    # to the vault.
+    - name: Create all join-channel jobs
+      include_role:
+        name: "create/channels_join"
+      vars:
+        build_path: "./build"
+        participants: "{{ item.participants }}"
+        docker_url: "{{ network.docker.url }}"
+      loop: "{{ network['channels'] }}"
+      when: item.channel_status == 'new'
+
   vars: #These variables can be overriden from the command line
     privilege_escalate: false           #Default to NOT escalate to root privledges
     install_os: "linux"                 #Default to linux OS
