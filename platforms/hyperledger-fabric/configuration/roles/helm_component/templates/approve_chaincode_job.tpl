@@ -33,8 +33,8 @@ spec:
       role: vault-role
       address: {{ vault.url }}
       authpath: {{ org.k8s.cluster_id | default('')}}{{ network.env.type }}{{ name }}
-      adminsecretprefix: {{ vault.secret_path | default('secretsv2') }}/data/{{ name }}/peerOrganizations/{{ namespace }}/users/admin 
-      orderersecretprefix: {{ vault.secret_path | default('secretsv2') }}/data/{{ name }}/peerOrganizations/{{ namespace }}/orderer
+      adminsecretprefix: {{ vault.secret_path | default('secretsv2') }}/data/{{ network.env.type }}{{ name }}/users/admin
+      orderersecretprefix: {{ vault.secret_path | default('secretsv2') }}/data/{{ network.env.type }}{{ name }}/orderer
       serviceaccountname: vault-auth
       type: {{ vault.type | default("hashicorp") }}
 {% if network.docker.username is defined and network.docker.password is defined %}
