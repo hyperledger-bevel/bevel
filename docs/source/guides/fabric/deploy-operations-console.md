@@ -14,6 +14,7 @@
 ## Prerequisites
 The [Fabric Operations Console](https://github.com/hyperledger-labs/fabric-operations-console) can be deployed along with the Fabric Network. 
 You can then manually add peers, orderers, CA to the console by importing appropriate JSON files.
+Bevel deploys the console together with the required `fabric-deployer` sidecar so channel and ordering-service workflows can use the backend deployer APIs out of the box.
 
 The Helm Chart for Fabric Operations Console is available [here](https://github.com/hyperledger/bevel/blob/main/platforms/hyperledger-fabric/charts/fabric-operations-console).
 

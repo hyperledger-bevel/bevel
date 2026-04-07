@@ -82,6 +82,17 @@ spec:
         volumeMounts:         
         - name: {{ $.Values.service.name }}-config-volume
           mountPath: /home/athena/env
+      - name: fabric-deployer
+        image: {{ $.Values.metadata.images.deployer }}
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: deployer
+          containerPort: {{ $.Values.service.ports.deployer.clusteripport }}
+        env:
+        - name: LICENSE
+          value: "accept"
+        - name: DBCONNECTIONSTRING
+          value: "http://admin:password@127.0.0.1:5984"
       - name: configtxlator
         image: {{ $.Values.metadata.images.configtxlator }}
         imagePullPolicy: IfNotPresent        

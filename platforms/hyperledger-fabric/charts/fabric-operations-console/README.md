@@ -57,9 +57,9 @@ operation_console/
 - `templates/`: Contains the Kubernetes manifest templates that define the resources to be deployed.
 - `helpers.tpl`: Contains custom label definitions used in other templates.
 - `configmap.yaml`: Store configuration for the fabric-console
-- `deployment.yaml`: Defines a StatefulSet with one replica that manages three containers: couchdb, fabric-console, and configtxlator. The couchdb container will be used to store the data for the Fabric network and it will be exposed on port 5984. The fabric-console container will be used to interact with the Fabric network and it will be exposed on port 3000. The configtxlator container will be used to generate and manage configuration transactions for the Fabric network and it will be exposed on port 7059.
+- `deployment.yaml`: Defines a StatefulSet with one replica that manages four containers: couchdb, fabric-console, fabric-deployer, and configtxlator. The couchdb container will be used to store the data for the Fabric network and it will be exposed on port 5984. The fabric-console container will be used to interact with the Fabric network and it will be exposed on port 3000. The fabric-deployer sidecar provides the backend APIs the console uses for orderer and channel workflows and listens on port 8080 inside the pod. The configtxlator container will be used to generate and manage configuration transactions for the Fabric network and it will be exposed on port 7059.
 - `pvc.yaml`: Defines a persistent volume claim that will be used to store the data for the CouchDB database.
-- `service.yaml`: configures a Kubernetes Service and an Ingress. The service has three ports: console (port 3000) is exposed for the fabric-console, couchdb (port 5984) is exposed for the couchdb database, and configtxlator (port 7059) is exposed for the configtxlator container. The service can be exposed in two ways: ClusterIP and NodePort. Optionally, if haproxy is selected, ingress will route traffic to the Service using the host and path.
+- `service.yaml`: configures a Kubernetes Service and an Ingress. The service has three externally exposed ports: console (port 3000) is exposed for the fabric-console, couchdb (port 5984) is exposed for the couchdb database, and configtxlator (port 7059) is exposed for the configtxlator container. The fabric-deployer sidecar is only used from inside the pod by the console. The service can be exposed in two ways: ClusterIP and NodePort. Optionally, if haproxy is selected, ingress will route traffic to the Service using the host and path.
 - `Chart.yaml`: Contains the metadata for the Helm chart, such as the name, version, and description.
 - `README.md`: Provides information and instructions about the Helm chart.
 - `values.yaml`: Contains the default configuration values for the Helm chart.
@@ -77,6 +77,7 @@ The [values.yaml](https://github.com/hyperledger/bevel/blob/develop/platforms/hy
 | namespace             | Provide the namespace for organization's peer                         | org1-net                                      |
 | images.couchdb        | Valid image name and version for fabric couchdb                       | couchdb:3.1.1                                         |
 | images.console        | Valid image name and version for fabric operations console            | ghcr.io/hyperledger-labs/fabric-console:latest        |
+| images.deployer       | Valid image name and version for the fabric deployer sidecar          | ghcr.io/ibm-blockchain/fabric-deployer:latest-amd64   |
 | images.configtxlator  | Valid image name and version to read certificates from vault server   | ghcr.io/hyperledger/bevel-fabric-tools:2.2.2                        |
 | labels                | Custom labels (other than predefined ones)                            | ""                                                    |
 
@@ -102,6 +103,7 @@ The [values.yaml](https://github.com/hyperledger/bevel/blob/develop/platforms/hy
 | ports.console.clusteripport   | Cluster IP port for grpc service                | 3000                |
 | ports.couchdb.nodeport        | NodePort for couchdb service (optional)         | ""                  |
 | ports.couchdb.clusteripport   | Cluster IP port for couchdb service             | 5984                |
+| ports.deployer.clusteripport  | Internal port for the fabric deployer sidecar   | 8080                |
 
 
 

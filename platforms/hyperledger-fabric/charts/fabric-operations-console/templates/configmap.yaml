@@ -26,5 +26,6 @@ data:
     max_req_per_min: 100
     default_consortium: {{ $.Values.service.default_consortium }}
     configtxlator_url_original: http://{{ $.Values.service.name }}.{{ $.Values.metadata.namespace }}:7059
+    deployer_url: http://127.0.0.1:{{ $.Values.service.ports.deployer.clusteripport }}
     host_url: https://{{ $.Values.service.name }}.{{ $.Values.metadata.namespace }}.{{ $.Values.proxy.external_url_suffix }}
     default_user_password_initial: password
