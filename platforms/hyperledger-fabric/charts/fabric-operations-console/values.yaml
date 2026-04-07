@@ -15,6 +15,9 @@ metadata:
     #Provide the valid image name and version for fabric operations console
     #Eg. hyperledgerlabs/fabric-console:latest
     console: ghcr.io/hyperledger-labs/fabric-console:latest
+    #Provide the valid image name and version for the fabric deployer sidecar
+    #Eg. ghcr.io/ibm-blockchain/fabric-deployer:latest-amd64
+    deployer: ghcr.io/ibm-blockchain/fabric-deployer:latest-amd64
     #Provide the valid image name and version to read certificates from vault server 
     #Eg. alpineutils: ghcr.io/hyperledger/bevel-alpine:latest
     configtxlator: ghcr.io/hyperledger/bevel-fabric-tools:2.2.2
@@ -66,6 +69,10 @@ service:
       #Provide a cluster IP port for couchdb service to be exposed
       #Eg. clusteripport: 5984
       clusteripport: 5984
+    deployer:
+      #Provide the internal port for the deployer sidecar
+      #Eg. clusteripport: 8080
+      clusteripport: 8080
       
 annotations:
   #Extra annotations
